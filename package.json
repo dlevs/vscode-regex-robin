@@ -1,0 +1,98 @@
+{
+  "name": "patterns",
+  "displayName": "Link Patterns",
+  "description": "Automatically turn text into links based upon regex patterns.",
+  "version": "1.0.2",
+  "publisher": "DanLevett",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.32.0"
+  },
+  "repository": {
+    "url": "https://github.com/dlevs/vscode-patterns"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "icon": "assets/icon.png",
+  "keywords": [
+    "link",
+    "pattern",
+    "regex",
+    "auto",
+    "autolink"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Pattern Links",
+      "properties": {
+        "patternlinks.rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "linkPattern",
+              "linkTarget"
+            ],
+            "properties": {
+              "linkPattern": {
+                "type": "string",
+                "markdownDescription": "A regular expression used to find text in the document to turn into links.\n\nExample: `ISSUES-\\d+`\n\nThe example pattern would match text like `ISSUE-1` and `ISSUE-200`.",
+                "default": ""
+              },
+              "linkPatternFlags": {
+                "type": "string",
+                "markdownDescription": "A list of [regular expression flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags) to use.\n\nExample: `is`\n\nThe example flags make the search case-insensitive (`i` flag) and allows the `.` character to match over multiple lines (`s` flag). The `g` flag is always applied.",
+                "default": ""
+              },
+              "linkTarget": {
+                "type": "string",
+                "markdownDescription": "The link template.\n\nExample: `https://myorg.atlassian.net/browse/$0`\n\nIn the example, `$0` will be replaced with the captured text from the linkPattern; the final URL might be `https://myorg.atlassian.net/browse/ISSUE-200`.",
+                "default": ""
+              },
+              "languages": {
+                "type": "array",
+                "markdownDescription": "An array of languages to enable this rule for.\n\nExample: `[\"plaintext\", \"markdown\"]`\n\nIf no languages are specified, the rule is enabled for all languages.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              }
+            },
+            "additionalProperties": false
+          },
+          "default": [],
+          "markdownDescription": "A list of rules for turning text into clickable links."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile && npm run lint && npm run test",
+    "compile": "tsc -p ./",
+    "lint": "eslint . --ext .ts,.tsx",
+    "watch": "tsc -watch -p ./",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^17.0.5",
+    "@types/vscode": "^1.32.0",
+    "@typescript-eslint/eslint-plugin": "^5.8.1",
+    "@typescript-eslint/parser": "^5.8.1",
+    "@vscode/test-electron": "^2.0.0",
+    "eslint": "^8.5.0",
+    "eslint-config-prettier": "^8.3.0",
+    "glob": "^7.2.0",
+    "mocha": "^9.1.3",
+    "prettier": "^2.5.1",
+    "type-fest": "^2.8.0",
+    "typescript": "^4.5.4"
+  }
+}
