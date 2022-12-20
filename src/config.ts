@@ -2,12 +2,14 @@ import * as vscode from "vscode";
 import type { PartialDeep } from "type-fest";
 
 interface Config {
-  rules: {
-    linkPattern: string;
-    linkPatternFlags: string;
-    linkTarget: string;
-    languages: string[];
-  }[];
+  rules: Rule[];
+}
+
+export interface Rule {
+  linkPattern: string;
+  linkPatternFlags: string;
+  linkTarget: string;
+  languages: string[];
 }
 
 export const EXTENSION_NAME = "patternlinks";
