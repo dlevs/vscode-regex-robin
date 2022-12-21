@@ -48,6 +48,16 @@ const rules: (Rule & {
     languages: ["*"],
   },
   {
+    // comment: "Markdown link",
+    linkPattern: "\\[(.+?)\\]\\(.+?\\)",
+    linkTarget: "$1",
+    color: "yellow",
+    linkPatternFlags: "g",
+    replaceWith: "$1",
+    hoverMessage: "foo",
+    languages: ["*"],
+  },
+  {
     linkPattern: "([A-Za-z_-]+)#(\\d+)",
     linkTarget: "https://github.com/ticknovate/$1/pull/$2",
     linkPatternFlags: "g",
@@ -166,7 +176,20 @@ function update() {
         let replacementText = "";
 
         if (!isCursorInside && match.data.replaceWith) {
-          replacementText = match.data.replaceWith;
+          // TODO: Break this into a nice util fn
+          // Replace:
+          // - $0 with match[0]
+          // - $1 with match[1]
+          // - \$1 with $1 (respect escape character)
+          // - ...etc
+          replacementText = match.data.replaceWith
+            .replace(/(^|[^\\])\$(\d)/g, (indexMatch, nonEscapeChar, index) => {
+              return (
+                nonEscapeChar +
+                ((match.match as RegExpExecArray)[Number(index)] ?? `$${index}`)
+              );
+            })
+            .replace(/\\\$/g, "$");
           hideRanges.push(match.range);
         }
 
