@@ -15,6 +15,57 @@ export function activate(context: vscode.ExtensionContext): void {
       initFromConfig(context);
     }
   });
+
+  // TODO: Add throttling
+  // TODO: Dispose
+  update();
+  vscode.workspace.onDidChangeTextDocument(function (event) {
+    update();
+  });
+}
+
+const redDecorationType = vscode.window.createTextEditorDecorationType({
+  textDecoration: "none; color: red !important; text-decoration: underline;", // a hack to inject custom style
+});
+
+function update() {
+  const config = getConfig();
+
+  // log.appendLine("onDidChangeTextDocument! " + event.document.fileName);
+  const editor = vscode.window.activeTextEditor;
+  const document = editor?.document;
+
+  // TODO: Check current doc
+  if (!editor || !document) return;
+
+  const matches = config.rules.flatMap((rule) => {
+    return matcher(document, rule.linkPattern, rule.linkPatternFlags, rule);
+  });
+
+  log.appendLine(`Matches: ${JSON.stringify(matches)}`);
+
+  // activeRules = matches.map((match) => {
+  //   return vscode.languages.registerDocumentLinkProvider(
+  //     match.data.languages.map((language) => ({ language })),
+
+  //     new LinkDefinitionProvider(
+  //       // rule.linkPattern,
+  //       "vertical", // TODO
+  //       match.linkPatternFlags,
+  //       match.linkTarget
+  //     )
+  //   );
+  // });
+
+  // const disappearDecorationType =
+  //   vscode.window.createTextEditorDecorationType({
+  //     textDecoration: "none; display: none;", // a hack to inject custom style
+  //   });
+
+  editor.setDecorations(
+    redDecorationType,
+    matches.map((match) => match.range)
+  );
 }
 
 // TODO: Move me
@@ -57,35 +108,35 @@ function initFromConfig(context: vscode.ExtensionContext): void {
   // TODO: Check current doc
   if (!editor || !document) return;
 
-  const matches = config.rules.flatMap((rule) => {
-    return matcher(document, rule.linkPattern, rule.linkPatternFlags, rule);
-  });
-
-  log.appendLine(`Matches: ${JSON.stringify(matches)}`);
-
-  // activeRules = matches.map((match) => {
-  //   return vscode.languages.registerDocumentLinkProvider(
-  //     match.data.languages.map((language) => ({ language })),
-
-  //     new LinkDefinitionProvider(
-  //       // rule.linkPattern,
-  //       "vertical", // TODO
-  //       match.linkPatternFlags,
-  //       match.linkTarget
-  //     )
-  //   );
+  // const matches = config.rules.flatMap((rule) => {
+  //   return matcher(document, rule.linkPattern, rule.linkPatternFlags, rule);
   // });
 
-  const disappearDecorationType = vscode.window.createTextEditorDecorationType({
-    textDecoration: "none; display: none;", // a hack to inject custom style
-  });
-  const redDecorationType = vscode.window.createTextEditorDecorationType({
-    textDecoration: "none; color: red;", // a hack to inject custom style
-  });
+  // log.appendLine(`Matches: ${JSON.stringify(matches)}`);
 
-  editor.setDecorations(redDecorationType, [
-    new vscode.Range(document.positionAt(0), document.positionAt(10)),
-  ]);
+  // // activeRules = matches.map((match) => {
+  // //   return vscode.languages.registerDocumentLinkProvider(
+  // //     match.data.languages.map((language) => ({ language })),
+
+  // //     new LinkDefinitionProvider(
+  // //       // rule.linkPattern,
+  // //       "vertical", // TODO
+  // //       match.linkPatternFlags,
+  // //       match.linkTarget
+  // //     )
+  // //   );
+  // // });
+
+  // const disappearDecorationType = vscode.window.createTextEditorDecorationType({
+  //   textDecoration: "none; display: none;", // a hack to inject custom style
+  // });
+  // const redDecorationType = vscode.window.createTextEditorDecorationType({
+  //   textDecoration: "none; color: red;", // a hack to inject custom style
+  // });
+
+  // editor.setDecorations(redDecorationType, [
+  //   new vscode.Range(document.positionAt(0), document.positionAt(10)),
+  // ]);
 
   activeRules.push(
     vscode.languages.registerHoverProvider("*", {
