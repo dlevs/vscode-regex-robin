@@ -5,6 +5,7 @@ import { LinkDefinitionProvider } from "./LinkDefinitionProvider";
 import { matcher } from "./matcher";
 
 let activeRules: vscode.Disposable[] = [];
+const log = vscode.window.createOutputChannel("Patterns");
 
 // TODO: See how they do it here: https://github.com/Gruntfuggly/todo-tree/blob/master/src/extension.js
 export function activate(context: vscode.ExtensionContext): void {
@@ -24,13 +25,81 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 }
 
-const redDecorationType = vscode.window.createTextEditorDecorationType({
-  textDecoration: "none; color: red !important; text-decoration: underline;", // a hack to inject custom style
+// const config = getConfig();
+const rules: (Rule & { color?: string; replaceWith?: string })[] = [
+  {
+    linkPattern: "(CORE|FS|JM|PPA|IN|LUK2)-\\d+",
+    linkTarget: "https://ticknovate.atlassian.net/browse/$0",
+    color: "red",
+    linkPatternFlags: "g",
+    replaceWith: "Hello",
+    languages: ["*"],
+  },
+  {
+    linkPattern: "#(\\d+)",
+    linkTarget: "https://github.com/ticknovate/ticknovate/pull/$1",
+    color: "cyan",
+    linkPatternFlags: "g",
+    languages: ["*"],
+  },
+  {
+    linkPattern: "([A-Za-z_-]+)#(\\d+)",
+    linkTarget: "https://github.com/ticknovate/$1/pull/$2",
+    linkPatternFlags: "g",
+    languages: ["*"],
+  },
+  {
+    linkPattern: "infra#(\\d+)",
+    linkPatternFlags: "g",
+    languages: ["*"],
+    linkTarget:
+      "https://github.com/ticknovate/ticknovate-infrastructure/pull/$1",
+  },
+  {
+    linkPattern: "backlog#(\\d+)",
+    linkPatternFlags: "g",
+    languages: ["*"],
+    linkTarget: "https://ticknovate.monday.com/boards/2027894754/pulses/$1",
+  },
+  {
+    linkPattern: "confluence#(\\d+)",
+    linkPatternFlags: "g",
+    languages: ["*"],
+    linkTarget: "https://ticknovate.atlassian.net/wiki/spaces/TD/pages/$1",
+  },
+  {
+    linkPattern: "v:([^\\s]+)",
+    linkPatternFlags: "g",
+    languages: ["*"],
+    linkTarget:
+      "https://ticknovate.atlassian.net/issues/?jql=fixVersion%20%3D%20$1",
+  },
+];
+
+const allColorDecorations = new Set<vscode.TextEditorDecorationType>();
+
+const disappearDecoration = vscode.window.createTextEditorDecorationType({
+  textDecoration: "none; display: none;", // a hack to inject custom style
+});
+
+const decoratedRules = rules.map((rule) => {
+  const decoration = rule.color
+    ? vscode.window.createTextEditorDecorationType({
+        textDecoration: `none; color: ${rule.color} !important; text-decoration: underline;`, // a hack to inject custom style
+      })
+    : null;
+
+  if (decoration) {
+    allColorDecorations.add(decoration);
+  }
+
+  return {
+    ...rule,
+    decoration,
+  };
 });
 
 function update() {
-  const config = getConfig();
-
   // log.appendLine("onDidChangeTextDocument! " + event.document.fileName);
   const editor = vscode.window.activeTextEditor;
   const document = editor?.document;
@@ -38,11 +107,11 @@ function update() {
   // TODO: Check current doc
   if (!editor || !document) return;
 
-  const matches = config.rules.flatMap((rule) => {
+  const matches = decoratedRules.flatMap((rule) => {
     return matcher(document, rule.linkPattern, rule.linkPatternFlags, rule);
   });
 
-  log.appendLine(`Matches: ${JSON.stringify(matches)}`);
+  // log.appendLine(`Matches: ${JSON.stringify(matches)}`);
 
   // activeRules = matches.map((match) => {
   //   return vscode.languages.registerDocumentLinkProvider(
@@ -62,10 +131,31 @@ function update() {
   //     textDecoration: "none; display: none;", // a hack to inject custom style
   //   });
 
-  editor.setDecorations(
-    redDecorationType,
-    matches.map((match) => match.range)
-  );
+  const decorationMap = new Map<
+    vscode.TextEditorDecorationType,
+    typeof matches
+  >();
+
+  // Group matches by decoration
+  for (const match of matches) {
+    if (match.data.decoration) {
+      if (decorationMap.has(match.data.decoration)) {
+        decorationMap.get(match.data.decoration)?.push(match);
+      } else {
+        decorationMap.set(match.data.decoration, [match]);
+      }
+    }
+  }
+
+  // Apply decoration
+  for (const decoration of allColorDecorations) {
+    const matches = decorationMap.get(decoration) ?? [];
+
+    editor.setDecorations(
+      decoration,
+      matches.map((match) => match.range)
+    );
+  }
 }
 
 // TODO: Move me
@@ -93,7 +183,6 @@ function getDocumentLinkForRule(
     target: vscode.Uri.parse(url),
   };
 }
-const log = vscode.window.createOutputChannel("Patterns");
 
 function initFromConfig(context: vscode.ExtensionContext): void {
   const config = getConfig();
