@@ -20,19 +20,23 @@ export function activate(context: vscode.ExtensionContext): void {
   // TODO: Add throttling
   // TODO: Dispose
   update();
-  vscode.workspace.onDidChangeTextDocument(function (event) {
-    update();
-  });
+  vscode.workspace.onDidChangeTextDocument(update);
+  vscode.window.onDidChangeTextEditorSelection(update, null, []);
 }
 
 // const config = getConfig();
-const rules: (Rule & { color?: string; replaceWith?: string })[] = [
+const rules: (Rule & {
+  color?: string;
+  replaceWith?: string;
+  hoverMessage?: string;
+})[] = [
   {
     linkPattern: "(CORE|FS|JM|PPA|IN|LUK2)-\\d+",
     linkTarget: "https://ticknovate.atlassian.net/browse/$0",
     color: "red",
     linkPatternFlags: "g",
     replaceWith: "Hello",
+    hoverMessage: "foo",
     languages: ["*"],
   },
   {
@@ -40,6 +44,7 @@ const rules: (Rule & { color?: string; replaceWith?: string })[] = [
     linkTarget: "https://github.com/ticknovate/ticknovate/pull/$1",
     color: "cyan",
     linkPatternFlags: "g",
+    hoverMessage: "bar",
     languages: ["*"],
   },
   {
@@ -147,15 +152,44 @@ function update() {
     }
   }
 
+  const selection = editor.selection;
+  const hideRanges: vscode.Range[] = [];
   // Apply decoration
+
   for (const decoration of allColorDecorations) {
-    const matches = decorationMap.get(decoration) ?? [];
+    const relevantMatches = decorationMap.get(decoration) ?? [];
 
     editor.setDecorations(
       decoration,
-      matches.map((match) => match.range)
+      relevantMatches.map((match) => {
+        const isCursorInside = match.range.contains(selection);
+        let replacementText = "";
+
+        if (!isCursorInside && match.data.replaceWith) {
+          replacementText = match.data.replaceWith;
+          hideRanges.push(match.range);
+        }
+
+        return {
+          range: match.range,
+          // TODO: This doesn't work
+          hoverMessage: match.data.hoverMessage,
+          renderOptions: {
+            after: {
+              color: match.data.color,
+              contentText: replacementText,
+              fontStyle: "normal",
+              border: replacementText
+                ? `0.5px solid ${match.data.color}; border-radius: 2px;`
+                : "",
+            },
+          },
+        };
+      })
     );
   }
+
+  editor.setDecorations(disappearDecoration, hideRanges);
 }
 
 // TODO: Move me
@@ -227,29 +261,29 @@ function initFromConfig(context: vscode.ExtensionContext): void {
   //   new vscode.Range(document.positionAt(0), document.positionAt(10)),
   // ]);
 
-  activeRules.push(
-    vscode.languages.registerHoverProvider("*", {
-      provideHover(document, position) {
-        // // if (document !== _current_doc || !_current_usages) return;
+  // activeRules.push(
+  //   vscode.languages.registerHoverProvider("*", {
+  //     provideHover(document, position) {
+  //       // // if (document !== _current_doc || !_current_usages) return;
 
-        const offset = document.offsetAt(position);
-        // const key = _current_usages.keys.find(
-        //   (k) => k.start <= offset && k.end >= offset
-        // );
-        // if (!key) return;
+  //       const offset = document.offsetAt(position);
+  //       // const key = _current_usages.keys.find(
+  //       //   (k) => k.start <= offset && k.end >= offset
+  //       // );
+  //       // if (!key) return;
 
-        const range = new vscode.Range(
-          document.positionAt(0),
-          document.positionAt(1)
-        );
+  //       const range = new vscode.Range(
+  //         document.positionAt(0),
+  //         document.positionAt(1)
+  //       );
 
-        return new vscode.Hover(
-          `My Markdown ${position.line}:${position.character}`,
-          range
-        );
-      },
-    })
-  );
+  //       return new vscode.Hover(
+  //         `My Markdown ${position.line}:${position.character}`,
+  //         range
+  //       );
+  //     },
+  //   })
+  // );
 
   // activeRules.push(
   //   vscode.languages.registerColorProvider("*", {
