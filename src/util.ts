@@ -35,11 +35,40 @@ export function documentMatcher(
   rule: MinimalRule
 ) {
   return textMatcher(document.getText(), rule).map((match) => {
-    const startPos = document.positionAt(match.index);
-    const endPos = document.positionAt(match.index + match[0].length);
-    const range = new vscode.Range(startPos, endPos);
+    const fullMatch = match[0];
 
-    return { match, range };
+    // TODO: Add tests
+    let currentIndex = 0;
+    const rangesByGroup = [
+      new vscode.Range(
+        document.positionAt(match.index),
+        document.positionAt(match.index + fullMatch.length)
+      ),
+      // TODO: More efficient way to do this?
+      // TODO: Should move this group logic into textMatcher
+      ...match.slice(1).map((group) => {
+        const index = fullMatch.slice(currentIndex).indexOf(group);
+        if (index === -1) {
+          return null;
+          // TODO: This happens for optional capture groups...
+          // throw new Error(
+          //   `Could not find group in full match. This should never happen. Text: ${group}`
+          // );
+        }
+
+        const start = currentIndex + index;
+        const end = start + group.length;
+        const range = new vscode.Range(
+          document.positionAt(match.index + start),
+          document.positionAt(match.index + end)
+        );
+        currentIndex = end;
+
+        return range;
+      }),
+    ];
+
+    return { match, rangesByGroup };
   });
 }
 
@@ -66,6 +95,7 @@ export function replaceMatches(template: string, match: RegExpExecArray) {
 }
 
 // TODO: Test
+// TODO: Ideally argument order would not matter.
 export function rangesOverlapLines(range1: vscode.Range, range2: vscode.Range) {
   return (
     (range1.start.line >= range2.start.line &&

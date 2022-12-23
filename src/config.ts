@@ -8,11 +8,15 @@ interface Config {
 export interface Rule {
   linkPattern: string;
   linkPatternFlags: string;
-  linkTarget: string;
   languages: string[];
-  color?: string;
-  replaceWith?: string;
-  hoverMessage?: string;
+  effects: {
+    captureGroup?: number;
+    linkTarget: string;
+    color?: string;
+    replaceWith?: string;
+    replaceWithMaxLength?: number;
+    hoverMessage?: string;
+  }[];
 }
 
 export const EXTENSION_NAME = "patternlinks";
