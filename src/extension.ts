@@ -33,27 +33,35 @@ const rules: (Rule & {
   {
     linkPattern: "(CORE|FS|JM|PPA|IN|LUK2)-\\d+",
     linkTarget: "https://ticknovate.atlassian.net/browse/$0",
-    color: "red",
+    color: "#F92672",
     linkPatternFlags: "g",
-    replaceWith: "Hello",
+    // replaceWith: "$0",
     hoverMessage: "foo",
     languages: ["*"],
   },
   {
     linkPattern: "#(\\d+)",
     linkTarget: "https://github.com/ticknovate/ticknovate/pull/$1",
-    color: "cyan",
+    color: "#66D9EF",
     linkPatternFlags: "g",
     hoverMessage: "bar",
     languages: ["*"],
+    // TODO: Something like this:
+    // effects: [
+    //   {
+    //     group: 1,
+    //     color: "red",
+    //   }
+    // ]
+    // Allows us to say "color the first capture group red", leaving the rest of the text alone.
   },
   {
     // comment: "Markdown link",
     linkPattern: "\\[(.+?)\\]\\(.+?\\)",
     linkTarget: "$1",
-    color: "yellow",
+    color: "#E6DB74",
     linkPatternFlags: "g",
-    replaceWith: "$1",
+    replaceWith: "🔗 $1",
     hoverMessage: "foo",
     languages: ["*"],
   },
@@ -171,40 +179,42 @@ function update() {
 
     editor.setDecorations(
       decoration,
-      relevantMatches.map((match) => {
-        const isCursorInside = match.range.contains(selection);
+      relevantMatches.map(({ match, range, data }) => {
+        const lineIsInSelection = rangesOverlapLines(selection, range);
         let replacementText = "";
 
-        if (!isCursorInside && match.data.replaceWith) {
+        if (!lineIsInSelection && data.replaceWith) {
           // TODO: Break this into a nice util fn
           // Replace:
           // - $0 with match[0]
           // - $1 with match[1]
           // - \$1 with $1 (respect escape character)
           // - ...etc
-          replacementText = match.data.replaceWith
+          replacementText = data.replaceWith
             .replace(/(^|[^\\])\$(\d)/g, (indexMatch, nonEscapeChar, index) => {
               return (
                 nonEscapeChar +
-                ((match.match as RegExpExecArray)[Number(index)] ?? `$${index}`)
+                ((match as RegExpExecArray)[Number(index)] ?? `$${index}`)
               );
             })
             .replace(/\\\$/g, "$");
-          hideRanges.push(match.range);
+          hideRanges.push(range);
         }
 
         return {
-          range: match.range,
+          range: range,
           // TODO: This doesn't work
-          hoverMessage: match.data.hoverMessage,
+          hoverMessage: data.hoverMessage,
           renderOptions: {
-            after: {
-              color: match.data.color,
+            before: {
+              color: data.color,
               contentText: replacementText,
               fontStyle: "normal",
-              border: replacementText
-                ? `0.5px solid ${match.data.color}; border-radius: 2px;`
-                : "",
+              // textDecoration: "underline",
+              // backgroundColor: replacementText ? "#ffffff10" : "",
+              // border: replacementText
+              //   ? `0.5px solid ${match.data.color}; border-radius: 2px;`
+              //   : "",
             },
           },
         };
@@ -239,6 +249,14 @@ function getDocumentLinkForRule(
     range,
     target: vscode.Uri.parse(url),
   };
+}
+
+function rangesOverlapLines(range1: vscode.Range, range2: vscode.Range) {
+  return (
+    (range1.start.line >= range2.start.line &&
+      range1.start.line <= range2.end.line) ||
+    (range1.end.line >= range2.start.line && range1.end.line <= range2.end.line)
+  );
 }
 
 function initFromConfig(context: vscode.ExtensionContext): void {
