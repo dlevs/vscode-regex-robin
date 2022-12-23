@@ -6,7 +6,12 @@ import {
   TerminalLinkDefintionProvider as TerminalLinkDefinitionProvider,
 } from "./LinkDefinitionProvider";
 import { testRules } from "./testRules";
-import { textMatcher, rangesOverlapLines, replaceMatches } from "./util";
+import {
+  textMatcher,
+  rangesOverlapLines,
+  replaceMatches,
+  documentMatcher,
+} from "./util";
 
 const log = vscode.window.createOutputChannel("Patterns");
 
@@ -82,7 +87,9 @@ function update() {
   if (!editor || !document) return;
 
   const matches = decoratedRules.flatMap((rule) => {
-    return textMatcher(document, rule.linkPattern, rule.linkPatternFlags, rule);
+    return documentMatcher(document, rule).map((match) => {
+      return { ...match, rule };
+    });
   });
 
   // const disappearDecorationType =
@@ -97,11 +104,11 @@ function update() {
 
   // Group matches by decoration
   for (const match of matches) {
-    if (match.data.decoration) {
-      if (decorationMap.has(match.data.decoration)) {
-        decorationMap.get(match.data.decoration)?.push(match);
+    if (match.rule.decoration) {
+      if (decorationMap.has(match.rule.decoration)) {
+        decorationMap.get(match.rule.decoration)?.push(match);
       } else {
-        decorationMap.set(match.data.decoration, [match]);
+        decorationMap.set(match.rule.decoration, [match]);
       }
     }
   }
@@ -116,24 +123,24 @@ function update() {
     editor.setDecorations(
       decoration,
       relevantMatches.map(
-        ({ match, range, data }): vscode.DecorationOptions => {
+        ({ match, range, rule }): vscode.DecorationOptions => {
           const lineIsInSelection = rangesOverlapLines(selection, range);
           let replacementText = "";
 
-          if (!lineIsInSelection && data.replaceWith) {
-            replacementText = replaceMatches(data.replaceWith, match);
+          if (!lineIsInSelection && rule.replaceWith) {
+            replacementText = replaceMatches(rule.replaceWith, match);
             hideRanges.push(range);
           }
 
           const hoverMessage =
-            data.hoverMessage && replaceMatches(data.hoverMessage, match);
+            rule.hoverMessage && replaceMatches(rule.hoverMessage, match);
 
           return {
             range,
             hoverMessage,
             renderOptions: {
               before: {
-                color: data.color,
+                color: rule.color,
                 contentText: replacementText,
                 fontStyle: "normal",
                 // textDecoration: "underline",

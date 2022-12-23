@@ -1,55 +1,46 @@
 // TODO: Rename files in this project
 import * as vscode from "vscode";
+import { Rule } from "./config";
 
 // TODO: Unit tests
 
-// TODO: Rename functions
-export function textMatcher<T>(
+type MinimalRule = Pick<Rule, "linkPattern" | "linkPatternFlags">;
+
+// TODO: Rename functions. Move them out to another file
+export function textMatcher(
   // TODO: See if anything here can be cached (function that returns a function)
   text: string,
-  pattern: string,
-  flags: string,
-  data?: T
+  rule: MinimalRule
 ) {
+  let flags = rule.linkPatternFlags;
   if (!flags.includes("g")) {
     flags += "g";
   }
 
-  const regEx = new RegExp(pattern, flags);
-  const matches: {
-    match: RegExpExecArray;
-    data?: T;
-  }[] = [];
+  const regEx = new RegExp(rule.linkPattern, flags);
+  const matches: RegExpExecArray[] = [];
 
   let match: RegExpExecArray | null;
   while ((match = regEx.exec(text))) {
-    matches.push({ match, data });
+    matches.push(match);
   }
 
   return matches;
 }
 
-export function documentMatcher<T>(
+export function documentMatcher(
   // TODO: See if anything here can be cached (function that returns a function)
   document: Pick<vscode.TextDocument, "getText" | "positionAt">,
   // TODO: improved function arguments
-  pattern: string,
-  flags: string,
-  data?: T
+  rule: MinimalRule
 ) {
-  return textMatcher(document.getText(), pattern, flags, data).map(
-    ({ match, data }) => {
-      const startPos = document.positionAt(match.index);
-      const endPos = document.positionAt(match.index + match[0].length);
-      const range = new vscode.Range(startPos, endPos);
+  return textMatcher(document.getText(), rule).map((match) => {
+    const startPos = document.positionAt(match.index);
+    const endPos = document.positionAt(match.index + match[0].length);
+    const range = new vscode.Range(startPos, endPos);
 
-      return {
-        match,
-        data,
-        range,
-      };
-    }
-  );
+    return { match, range };
+  });
 }
 
 /**

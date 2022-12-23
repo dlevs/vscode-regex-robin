@@ -13,11 +13,7 @@ export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
   }
 
   provideDocumentLinks(document: vscode.TextDocument) {
-    const matches = documentMatcher(
-      document,
-      this.rule.linkPattern,
-      this.rule.linkPatternFlags
-    );
+    const matches = documentMatcher(document, this.rule);
 
     return matches.map(({ range, match }): vscode.DocumentLink => {
       const url = replaceMatches(this.rule.linkTarget, match);
@@ -44,13 +40,9 @@ export class TerminalLinkDefintionProvider
   }
 
   provideTerminalLinks(context: vscode.TerminalLinkContext) {
-    const matches = textMatcher(
-      context.line,
-      this.rule.linkPattern,
-      this.rule.linkPatternFlags
-    );
+    const matches = textMatcher(context.line, this.rule);
 
-    return matches.map(({ match }): TerminalLink => {
+    return matches.map((match): TerminalLink => {
       const url = replaceMatches(this.rule.linkTarget, match);
 
       return {
