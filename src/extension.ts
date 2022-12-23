@@ -1,9 +1,14 @@
 import * as vscode from "vscode";
 // TODO: Rename. Refactor. This was copied from https://github.com/lokalise/i18n-ally/blob/main/src/editor/annotation.ts
 import { EXTENSION_NAME, getConfig, Rule } from "./config";
-import { LinkDefinitionProvider } from "./LinkDefinitionProvider";
+import {
+  LinkDefinitionProvider,
+  TerminalLinkDefintionProvider as TerminalLinkDefinitionProvider,
+} from "./LinkDefinitionProvider";
 import { testRules } from "./testRules";
-import { matcher, rangesOverlapLines, replaceMatches } from "./util";
+import { textMatcher, rangesOverlapLines, replaceMatches } from "./util";
+
+const log = vscode.window.createOutputChannel("Patterns");
 
 // TODOL What is this - when is it used?
 let activeRules: vscode.Disposable[] = [];
@@ -26,13 +31,18 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // TODO: Implement disposing these and re-init on config change. Same with the colours above.
   activeRules.push(
-    ...testRules.map((rule) => {
+    ...testRules.flatMap((rule) => {
       // TODO: Terminal links, too
       // TODO: Custom link text for hover
-      return vscode.languages.registerDocumentLinkProvider(
-        rule.languages.map((language) => ({ language })),
-        new LinkDefinitionProvider(rule)
-      );
+      return [
+        vscode.languages.registerDocumentLinkProvider(
+          rule.languages.map((language) => ({ language })),
+          new LinkDefinitionProvider(rule)
+        ),
+        vscode.window.registerTerminalLinkProvider(
+          new TerminalLinkDefinitionProvider(rule)
+        ),
+      ];
     })
   );
 }
@@ -72,10 +82,8 @@ function update() {
   if (!editor || !document) return;
 
   const matches = decoratedRules.flatMap((rule) => {
-    return matcher(document, rule.linkPattern, rule.linkPatternFlags, rule);
+    return textMatcher(document, rule.linkPattern, rule.linkPatternFlags, rule);
   });
-
-  // log.appendLine(`Matches: ${JSON.stringify(matches)}`);
 
   // const disappearDecorationType =
   //   vscode.window.createTextEditorDecorationType({

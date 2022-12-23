@@ -4,9 +4,9 @@ import * as vscode from "vscode";
 // TODO: Unit tests
 
 // TODO: Rename functions
-export function matcher<T>(
+export function textMatcher<T>(
   // TODO: See if anything here can be cached (function that returns a function)
-  document: vscode.TextDocument,
+  text: string,
   pattern: string,
   flags: string,
   data?: T
@@ -16,23 +16,40 @@ export function matcher<T>(
   }
 
   const regEx = new RegExp(pattern, flags);
-  const text = document.getText();
   const matches: {
-    range: vscode.Range;
     match: RegExpExecArray;
-    data: T;
+    data?: T;
   }[] = [];
 
   let match: RegExpExecArray | null;
   while ((match = regEx.exec(text))) {
-    const startPos = document.positionAt(match.index);
-    const endPos = document.positionAt(match.index + match[0].length);
-    const range = new vscode.Range(startPos, endPos);
-
-    matches.push({ match, range, data });
+    matches.push({ match, data });
   }
 
   return matches;
+}
+
+export function documentMatcher<T>(
+  // TODO: See if anything here can be cached (function that returns a function)
+  document: Pick<vscode.TextDocument, "getText" | "positionAt">,
+  // TODO: improved function arguments
+  pattern: string,
+  flags: string,
+  data?: T
+) {
+  return textMatcher(document.getText(), pattern, flags, data).map(
+    ({ match, data }) => {
+      const startPos = document.positionAt(match.index);
+      const endPos = document.positionAt(match.index + match[0].length);
+      const range = new vscode.Range(startPos, endPos);
+
+      return {
+        match,
+        data,
+        range,
+      };
+    }
+  );
 }
 
 /**
