@@ -10,6 +10,9 @@ export interface Rule {
   linkPatternFlags: string;
   linkTarget: string;
   languages: string[];
+  color?: string;
+  replaceWith?: string;
+  hoverMessage?: string;
 }
 
 export const EXTENSION_NAME = "patternlinks";
