@@ -86,8 +86,7 @@ export const testRules: Rule[] = [
       {
         captureGroup: 2,
         // color: "#66D9EF",
-        // TODO: Build that 0-space joiner in somehow:
-        replaceWith: "\u200B",
+        replaceWith: "",
       },
     ],
   },
@@ -124,11 +123,9 @@ export const testRules: Rule[] = [
       {
         captureGroup: 2,
         color: "#ff2722",
-        // TODO: Make linkTarget optional
-        linkTarget: "https://github.com/ticknovate/$1/pull/$2",
-        hoverMessage: "b",
         replaceWith: "$2",
         replaceWithMaxLength: 10,
+        hoverMessage: "a",
       },
       // {
       //   captureGroup: 1,

@@ -136,8 +136,10 @@ function update() {
         // TODO: Defaults higher up (?? 0)
         const range = rangesByGroup[effect.captureGroup ?? 0];
         const lineIsInSelection = rangesOverlapLines(range, selection);
+
         let replacementText = "";
-        if (!lineIsInSelection && effect.replaceWith) {
+
+        if (!lineIsInSelection && effect.replaceWith != null) {
           hideRanges.push(range);
 
           replacementText = replaceMatches(effect.replaceWith, match);
@@ -152,26 +154,37 @@ function update() {
           }
         }
 
+        // Replace empty strings with a zero-width space so that the text
+        // gets hidden if user configures it. `""` by itself does not hide
+        // the original text.
+        if (replacementText === "") {
+          replacementText = "\u200B";
+        }
+
         const hoverMessage =
           effect.hoverMessage && replaceMatches(effect.hoverMessage, match);
+
+        const renderOptions:
+          | vscode.DecorationInstanceRenderOptions
+          | undefined = replacementText
+          ? {
+              before: {
+                color: effect.color,
+                contentText: replacementText,
+                fontStyle: "normal",
+                // textDecoration: "underline",
+                // backgroundColor: replacementText ? "#ffffff10" : "",
+                // border: replacementText
+                //   ? `0.5px solid ${match.data.color}; border-radius: 2px;`
+                //   : "",
+              },
+            }
+          : undefined;
 
         return {
           range,
           hoverMessage,
-          renderOptions: {
-            before: replacementText
-              ? {
-                  color: effect.color,
-                  contentText: replacementText,
-                  fontStyle: "normal",
-                  // textDecoration: "underline",
-                  // backgroundColor: replacementText ? "#ffffff10" : "",
-                  // border: replacementText
-                  //   ? `0.5px solid ${match.data.color}; border-radius: 2px;`
-                  //   : "",
-                }
-              : undefined,
-          },
+          renderOptions,
         };
       }
     );
