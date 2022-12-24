@@ -172,11 +172,6 @@ function update() {
                 color: effect.color,
                 contentText: replacementText,
                 fontStyle: "normal",
-                // textDecoration: "underline",
-                // backgroundColor: replacementText ? "#ffffff10" : "",
-                // border: replacementText
-                //   ? `0.5px solid ${match.data.color}; border-radius: 2px;`
-                //   : "",
               },
             }
           : undefined;
