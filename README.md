@@ -68,7 +68,13 @@ This extension does not enforce this logic, but instead relies on the fact that 
 just works like this by default.
 
 TODO: Register only one `LinkDefinitionProvider`, which returns a maximum of one link per text range.
+
+TODO: Uinstall `inlineFold` plugin
  -->
+
+## Limitations
+
+- With "Word wrap" enabled, if text would wrap onto another line, then the extra line persists even if using the "replaceWith" option to display shorter text.
 
 ## Contributing
 

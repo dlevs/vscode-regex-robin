@@ -16,7 +16,11 @@ export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
     const matches = documentMatcher(document, this.rule);
 
     return matches.flatMap(({ rangesByGroup, match }) => {
-      return this.rule.effects.map((effect): vscode.DocumentLink => {
+      return this.rule.effects.flatMap((effect): vscode.DocumentLink | [] => {
+        if (!effect.linkTarget) {
+          return [];
+        }
+
         const url = replaceMatches(effect.linkTarget, match);
 
         return {
@@ -49,7 +53,11 @@ export class TerminalLinkDefintionProvider
     const matches = textMatcher(context.line, this.rule);
 
     return matches.flatMap((match) => {
-      return this.rule.effects.map((effect): TerminalLink => {
+      return this.rule.effects.flatMap((effect): TerminalLink | [] => {
+        if (!effect.linkTarget) {
+          return [];
+        }
+
         const url = replaceMatches(effect.linkTarget, match);
 
         return {

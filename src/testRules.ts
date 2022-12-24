@@ -34,18 +34,60 @@ export const testRules: Rule[] = [
       },
     ],
   },
+  // {
+  //   // comment: "Markdown link",
+  //   // TODO: Rename these params. Less focus on "links"
+  //   linkPattern: "\\[(.+?)\\]\\((.+?)\\)",
+  //   linkPatternFlags: "g",
+  //   languages: ["*"],
+  //   effects: [
+  //     {
+  //       linkTarget: "$2",
+  //       color: "#66D9EF",
+  //       replaceWith: "🔗 $1",
+  //       hoverMessage: "Link to $2",
+  //     },
+  //   ],
+  // },
+  // TODO: Document how this is not preferable to replacing only the 2nd part:
+  // {
+  //   // comment: "Markdown link",
+  //   // TODO: Rename these params. Less focus on "links"
+  //   linkPattern: "\\[(.+?)\\]\\((.+?)\\)",
+  //   linkPatternFlags: "g",
+  //   languages: ["*"],
+  //   effects: [
+  //     {
+  //       linkTarget: "$2",
+  //       color: "#66D9EF",
+  //       replaceWith: "[$1](…)",
+  //       hoverMessage: "Link to $2",
+  //     },
+  //   ],
+  // },
   {
     // comment: "Markdown link",
     // TODO: Rename these params. Less focus on "links"
-    linkPattern: "\\[(.+?)\\]\\((.+?)\\)",
+    // TODO: This nested capture group fully breaks the concepts used in `documentMatcher`...
+    linkPattern: "\\[(.+?)\\](\\((.+?)\\))",
     linkPatternFlags: "g",
     languages: ["*"],
     effects: [
       {
-        linkTarget: "$2",
+        hoverMessage: "Link to $3",
+        linkTarget: "$3",
         color: "#66D9EF",
-        replaceWith: "🔗 $1",
-        hoverMessage: "Link to $2",
+      },
+      // {
+      //   captureGroup: 1,
+      //   hoverMessage: "Link to $3",
+      //   linkTarget: "$3",
+      // },
+      {
+        captureGroup: 2,
+        // color: "#66D9EF",
+        // TODO: Build that 0-space joiner in somehow:
+        replaceWith: "\u200B",
       },
     ],
   },

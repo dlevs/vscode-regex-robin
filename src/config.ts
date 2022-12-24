@@ -11,7 +11,7 @@ export interface Rule {
   languages: string[];
   effects: {
     captureGroup?: number;
-    linkTarget: string;
+    linkTarget?: string;
     color?: string;
     replaceWith?: string;
     replaceWithMaxLength?: number;
