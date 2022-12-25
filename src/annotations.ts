@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { throttle } from "lodash";
+import { orderBy, sortBy, throttle } from "lodash";
 import { testRules } from "./testRules";
 import { rangesOverlapLines, replaceMatches, documentMatcher } from "./util";
 
@@ -42,8 +42,15 @@ function updateAnnotations() {
 
   // Group matches by decoration
   // TODO: Use lodash
+
   for (const { matchGroups, rule } of matches) {
-    for (const effect of rule.effects) {
+    const sortedEffects = orderBy(
+      rule.effects,
+      (effect) => effect.captureGroup ?? 0,
+      "desc"
+    );
+
+    for (const effect of sortedEffects) {
       if (effect.decoration) {
         const value = { matchGroups, effect };
 

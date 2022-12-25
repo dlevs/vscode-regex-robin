@@ -115,26 +115,25 @@ export const testRules: Rule[] = [
       },
     ],
   },
-  {
-    linkPattern: "\\[(2 .+?)\\](\\((.+?)\\))",
-    linkPatternFlags: "g",
-    languages: ["*"],
-    effects: [
-      {
-        hoverMessage: "Link to $3",
-        linkTarget: "$3",
-        color: "#66D9EF",
-        replaceWith: "$1",
-      },
-    ],
-  },
+  // {
+  //   linkPattern: "\\[(2 .+?)\\](\\((.+?)\\))",
+  //   linkPatternFlags: "g",
+  //   languages: ["*"],
+  //   effects: [
+  //     {
+  //       hoverMessage: "Link to $3",
+  //       linkTarget: "$3",
+  //       color: "#66D9EF",
+  //       replaceWith: "$1",
+  //     },
+  //   ],
+  // },
   {
     // This is testing nested capture groups
     linkPattern: "\\[(6 .+?)\\](\\((.+?)\\))",
     linkPatternFlags: "g",
     languages: ["*"],
     effects: [
-      // TODO: THis works! We just need to sort by captureGroup desc
       {
         captureGroup: 3,
         color: "orange",
