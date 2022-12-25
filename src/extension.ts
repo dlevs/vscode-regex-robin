@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
 import { updateAnnotationsThrottled } from "./annotations";
-import { EXTENSION_NAME, getConfig } from "./config";
 import {
   LinkDefinitionProvider,
   TerminalLinkDefinitionProvider,
 } from "./links";
-import { testRules } from "./testRules";
+import { getConfig } from "./config";
 
 // TODOL What is this - when is it used?
 
@@ -22,7 +21,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // }),
     vscode.window.onDidChangeTextEditorSelection(updateAnnotationsThrottled),
     vscode.workspace.onDidChangeTextDocument(updateAnnotationsThrottled),
-    ...testRules.flatMap((rule) => {
+    ...getConfig().rules.flatMap((rule) => {
       return [
         vscode.languages.registerDocumentLinkProvider(
           rule.languages.map((language) => ({ language })),

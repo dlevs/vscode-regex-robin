@@ -1,19 +1,54 @@
 import * as vscode from "vscode";
-import { orderBy, sortBy, throttle } from "lodash";
-import { testRules } from "./testRules";
-import { rangesOverlapLines, replaceMatches, documentMatcher } from "./util";
+import { orderBy, throttle } from "lodash";
+import { getConfig, testRules } from "./config";
+import {
+  rangesOverlapLines,
+  replaceMatches,
+  documentMatcher,
+  groupByMap,
+} from "./util";
 
 // const config = getConfig();
 
-const allColorDecorations = new Set<vscode.TextEditorDecorationType>();
+const decorationTypes = {
+  none: vscode.window.createTextEditorDecorationType({}),
+  hide: vscode.window.createTextEditorDecorationType({
+    textDecoration: "none; display: none;",
+  }),
+};
 
-const disappearDecoration = vscode.window.createTextEditorDecorationType({
-  textDecoration: "none; display: none;", // a hack to inject custom style
-});
+let allDecorations = new Set<vscode.TextEditorDecorationType>();
 
-const noDecoration = vscode.window.createTextEditorDecorationType({});
+function getDecoratedRules() {
+  // TODO:
+  // for (const decoration of allDecorations) {
+  //   // Clear old decorations
+  //   vscode.window.activeTextEditor?.setDecorations(decoration, []);
+  // }
 
-// TODO: Throttle
+  // allDecorations = new Set();
+
+  return getConfig().rules.map((rule) => {
+    return {
+      ...rule,
+      effects: rule.effects.map((effect) => {
+        const decoration = effect.style
+          ? vscode.window.createTextEditorDecorationType(effect.style)
+          : decorationTypes.none;
+
+        if (decoration) {
+          allDecorations.add(decoration);
+        }
+
+        return { ...effect, decoration };
+      }),
+    };
+  });
+}
+
+// TODO: Do this when config changes
+const decoratedRules = getDecoratedRules();
+
 function updateAnnotations() {
   const editor = vscode.window.activeTextEditor;
   const document = editor?.document;
@@ -31,43 +66,31 @@ function updateAnnotations() {
   //     textDecoration: "none; display: none;", // a hack to inject custom style
   //   });
 
-  const decorationMap = new Map<
-    vscode.TextEditorDecorationType,
-    // TODO: This is a mess
-    {
-      matchGroups: typeof matches[number]["matchGroups"];
-      effect: typeof matches[number]["rule"]["effects"][number];
-    }[]
-  >();
-
   // Group matches by decoration
   // TODO: Use lodash
-
-  for (const { matchGroups, rule } of matches) {
+  const allEffects = matches.flatMap(({ rule, matchGroups }) => {
+    // TODO: Any way to allow nested effects by doing a global sort on effects?
+    // Or is that impossible due to partial overlapping?
     const sortedEffects = orderBy(
       rule.effects,
       (effect) => effect.captureGroup ?? 0,
       "desc"
     );
 
-    for (const effect of sortedEffects) {
-      if (effect.decoration) {
-        const value = { matchGroups, effect };
+    return sortedEffects.map((effect) => {
+      return { effect, matchGroups };
+    });
+  });
 
-        if (decorationMap.has(effect.decoration)) {
-          decorationMap.get(effect.decoration)?.push(value);
-        } else {
-          decorationMap.set(effect.decoration, [value]);
-        }
-      }
-    }
-  }
-
+  const decorationMap = groupByMap(
+    allEffects,
+    ({ effect }) => effect.decoration
+  );
   const selection = editor.selection;
   const hideRanges: vscode.Range[] = [];
   // Apply decoration
 
-  for (const decoration of allColorDecorations) {
+  for (const decoration of allDecorations) {
     const relevantMatches = decorationMap.get(decoration) ?? [];
     const ranges = relevantMatches.flatMap(
       ({ matchGroups, effect }): vscode.DecorationOptions | [] => {
@@ -118,31 +141,10 @@ function updateAnnotations() {
     editor.setDecorations(decoration, ranges);
   }
 
-  editor.setDecorations(disappearDecoration, hideRanges);
+  editor.setDecorations(decorationTypes.hide, hideRanges);
 }
 
 export const updateAnnotationsThrottled = throttle(updateAnnotations, 50, {
   leading: true,
   trailing: true,
-});
-
-const decoratedRules = testRules.map((rule) => {
-  return {
-    ...rule,
-    effects: rule.effects.map((effect) => {
-      const decoration = effect.color
-        ? vscode.window.createTextEditorDecorationType({
-            // TODO: Make underline an option
-            // textDecoration: `none; color: ${effect.color}; text-decoration: underline;`,
-            textDecoration: `none; color: ${effect.color};`,
-          })
-        : noDecoration;
-
-      if (decoration) {
-        allColorDecorations.add(decoration);
-      }
-
-      return { ...effect, decoration };
-    }),
-  };
 });

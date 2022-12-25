@@ -15,9 +15,6 @@ type MatchCaptureGroup = {
 
 export function textMatcher(text: string, rule: MinimalRule) {
   let flags = rule.linkPatternFlags;
-  if (!flags.includes("g")) {
-    flags += "g";
-  }
 
   const regEx = new RegExp(rule.linkPattern, flags);
 
@@ -98,4 +95,23 @@ export function rangesOverlapLines(range1: vscode.Range, range2: vscode.Range) {
       range1.start.line <= range2.end.line) ||
     (range1.end.line >= range2.start.line && range1.end.line <= range2.end.line)
   );
+}
+
+export function groupByMap<Key, Item>(
+  collection: Iterable<Item>,
+  getKey: (item: Item) => Key
+) {
+  let grouped = new Map<Key, Item[]>();
+
+  for (const item of collection) {
+    const key = getKey(item);
+
+    if (grouped.has(key)) {
+      grouped.get(key)?.push(item);
+    } else {
+      grouped.set(key, [item]);
+    }
+  }
+
+  return grouped;
 }
