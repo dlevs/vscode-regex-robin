@@ -14,7 +14,6 @@ export interface Rule {
     linkTarget?: string;
     color?: string;
     replaceWith?: string;
-    replaceWithMaxLength?: number;
     hoverMessage?: string;
   }[];
 }

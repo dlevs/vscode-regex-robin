@@ -1,6 +1,6 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
-import { LinkDefinitionProvider } from "../../LinkDefinitionProvider";
+import { LinkDefinitionProvider } from "../../links";
 
 suite("LinkDefinitionProvider", () => {
   const document = {

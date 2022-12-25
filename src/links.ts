@@ -42,7 +42,7 @@ interface TerminalLink extends vscode.TerminalLink {
 /**
  * Provide links for the given regex and target template.
  */
-export class TerminalLinkDefintionProvider
+export class TerminalLinkDefinitionProvider
   implements vscode.TerminalLinkProvider
 {
   private rule: Rule;
