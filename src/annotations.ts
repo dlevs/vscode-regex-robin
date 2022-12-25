@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { orderBy, throttle } from "lodash";
-import { getConfig, testRules } from "./config";
+import { getConfig, getRuleRegex } from "./config";
 import {
   rangesOverlapLines,
   replaceMatches,
@@ -56,7 +56,7 @@ function updateAnnotations() {
   if (!editor || !document) return;
 
   const matches = decoratedRules.flatMap((rule) => {
-    return documentMatcher(document, rule).map((matchGroups) => {
+    return documentMatcher(document, getRuleRegex(rule)).map((matchGroups) => {
       return { matchGroups, rule };
     });
   });
@@ -105,10 +105,13 @@ function updateAnnotations() {
 
         let replacementText: string | undefined;
 
-        if (!lineIsInSelection && effect.replaceWith != null) {
+        if (!lineIsInSelection && effect.inlineReplacement != null) {
           hideRanges.push(group.range);
 
-          replacementText = replaceMatches(effect.replaceWith, matchGroups);
+          replacementText = replaceMatches(
+            effect.inlineReplacement,
+            matchGroups
+          );
         }
 
         // Replace empty strings with a zero-width space so that the text
@@ -128,7 +131,8 @@ function updateAnnotations() {
           renderOptions: replacementText
             ? {
                 before: {
-                  color: effect.color,
+                  // TODO: Put in the config options ability to style this independently
+                  ...effect.style,
                   contentText: replacementText,
                   fontStyle: "normal",
                 },

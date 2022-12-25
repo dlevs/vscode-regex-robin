@@ -5,23 +5,17 @@ import { Rule } from "./config";
 
 // TODO: Unit tests
 
-type MinimalRule = Pick<Rule, "linkPattern" | "linkPatternFlags">;
-
 type MatchCaptureGroup = {
   match: string;
   start: number;
   end: number;
 } | null;
 
-export function textMatcher(text: string, rule: MinimalRule) {
-  let flags = rule.linkPatternFlags;
-
-  const regEx = new RegExp(rule.linkPattern, flags);
-
+export function textMatcher(text: string, regex: RegExp) {
   const matches: MatchCaptureGroup[][] = [];
 
   let match: RegExpExecArray | null;
-  while ((match = execWithIndices(regEx, text))) {
+  while ((match = execWithIndices(regex, text))) {
     const { indices } = match;
 
     const groups = match.map((match, i) => {
@@ -42,11 +36,8 @@ export function textMatcher(text: string, rule: MinimalRule) {
   return matches;
 }
 
-export function documentMatcher(
-  document: vscode.TextDocument,
-  rule: MinimalRule
-) {
-  const matches = textMatcher(document.getText(), rule);
+export function documentMatcher(document: vscode.TextDocument, regex: RegExp) {
+  const matches = textMatcher(document.getText(), regex);
 
   return matches.map((match) => {
     return match.map((match) => {

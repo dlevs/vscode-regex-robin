@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Rule } from "./config";
+import { getRuleRegex, Rule } from "./config";
 import { textMatcher, replaceMatches, documentMatcher } from "./util";
 
 /**
@@ -13,7 +13,7 @@ export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
   }
 
   provideDocumentLinks(document: vscode.TextDocument) {
-    const matches = documentMatcher(document, this.rule);
+    const matches = documentMatcher(document, getRuleRegex(this.rule));
 
     return matches.flatMap((matchGroups) => {
       return this.rule.effects.flatMap((effect): vscode.DocumentLink | [] => {
@@ -52,7 +52,7 @@ export class TerminalLinkDefinitionProvider
   }
 
   provideTerminalLinks(context: vscode.TerminalLinkContext) {
-    const matches = textMatcher(context.line, this.rule);
+    const matches = textMatcher(context.line, getRuleRegex(this.rule));
 
     return matches.flatMap((matchGroups) => {
       return this.rule.effects.flatMap((effect): TerminalLink | [] => {

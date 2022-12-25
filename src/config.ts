@@ -75,6 +75,10 @@ export function getConfig(): Config {
   };
 }
 
+export function getRuleRegex(rule: Rule) {
+  return new RegExp(rule.regex, rule.regexFlags.raw);
+}
+
 const testConfig: ConfigInput = {
   rules: [
     {
@@ -169,7 +173,7 @@ const testConfig: ConfigInput = {
         {
           hoverMessage: "Link to $3",
           linkTarget: "$3",
-          style: { color: "#66D9EF" },
+          style: { color: "#66D9EF", textDecoration: "none" },
         },
       ],
     },
@@ -204,7 +208,7 @@ const testConfig: ConfigInput = {
         {
           hoverMessage: "Link to $3",
           linkTarget: "$3",
-          style: { color: "#66D9EF" },
+          style: { color: "#66D9EF", textDecoration: "none" },
         },
       ],
     },
