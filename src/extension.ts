@@ -92,8 +92,8 @@ function update() {
   if (!editor || !document) return;
 
   const matches = decoratedRules.flatMap((rule) => {
-    return documentMatcher(document, rule).map((match) => {
-      return { ...match, rule };
+    return documentMatcher(document, rule).map((matchGroups) => {
+      return { matchGroups, rule };
     });
   });
 
@@ -105,16 +105,17 @@ function update() {
   const decorationMap = new Map<
     vscode.TextEditorDecorationType,
     // TODO: This is a mess
-    (typeof matches[number] & {
+    {
+      matchGroups: typeof matches[number]["matchGroups"];
       effect: typeof matches[number]["rule"]["effects"][number];
-    })[]
+    }[]
   >();
 
   // Group matches by decoration
-  for (const match of matches) {
-    for (const effect of match.rule.effects) {
+  for (const { matchGroups, rule } of matches) {
+    for (const effect of rule.effects) {
       if (effect.decoration) {
-        const value = { ...match, effect };
+        const value = { matchGroups, effect };
 
         if (decorationMap.has(effect.decoration)) {
           decorationMap.get(effect.decoration)?.push(value);
@@ -132,9 +133,9 @@ function update() {
   for (const decoration of allColorDecorations) {
     const relevantMatches = decorationMap.get(decoration) ?? [];
     const ranges = relevantMatches.map(
-      ({ match, effect, rangesByGroup }): vscode.DecorationOptions => {
+      ({ matchGroups, effect }): vscode.DecorationOptions => {
         // TODO: Defaults higher up (?? 0)
-        const range = rangesByGroup[effect.captureGroup ?? 0];
+        const { range } = matchGroups[effect.captureGroup ?? 0];
         const lineIsInSelection = rangesOverlapLines(range, selection);
 
         let replacementText = "";
@@ -142,7 +143,7 @@ function update() {
         if (!lineIsInSelection && effect.replaceWith != null) {
           hideRanges.push(range);
 
-          replacementText = replaceMatches(effect.replaceWith, match);
+          replacementText = replaceMatches(effect.replaceWith, matchGroups);
           if (
             effect.replaceWithMaxLength &&
             replacementText.length > effect.replaceWithMaxLength
@@ -162,7 +163,8 @@ function update() {
         }
 
         const hoverMessage =
-          effect.hoverMessage && replaceMatches(effect.hoverMessage, match);
+          effect.hoverMessage &&
+          replaceMatches(effect.hoverMessage, matchGroups);
 
         const renderOptions:
           | vscode.DecorationInstanceRenderOptions

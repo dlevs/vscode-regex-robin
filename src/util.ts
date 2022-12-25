@@ -1,11 +1,17 @@
 // TODO: Rename files in this project
 import * as vscode from "vscode";
-import execWithIndices from "regexp-match-indices";
+import execWithIndices, { RegExpExecArray } from "regexp-match-indices";
 import { Rule } from "./config";
 
 // TODO: Unit tests
 
 type MinimalRule = Pick<Rule, "linkPattern" | "linkPatternFlags">;
+
+type MatchCaptureGroup = {
+  match: string;
+  start: number;
+  end: number;
+};
 
 export function textMatcher(text: string, rule: MinimalRule) {
   let flags = rule.linkPatternFlags;
@@ -15,35 +21,40 @@ export function textMatcher(text: string, rule: MinimalRule) {
 
   const regEx = new RegExp(rule.linkPattern, flags);
 
-  const matches = execWithIndices(regEx, text);
+  const matches: MatchCaptureGroup[][] = [];
 
-  if (!matches) {
-    return [];
+  let match: RegExpExecArray | null;
+  while ((match = execWithIndices(regEx, text))) {
+    const { indices } = match;
+
+    const groups = match.map((match, i) => {
+      const [start, end] = indices[i];
+
+      return { match, start, end };
+    });
+
+    matches.push(groups);
   }
 
-  const { indices } = matches;
-
-  return matches.map((match, i) => {
-    const [start, end] = indices[i];
-
-    return { match, start, end };
-  });
+  return matches;
 }
 
 export function documentMatcher(
   document: vscode.TextDocument,
   rule: MinimalRule
 ) {
-  const match = textMatcher(document.getText(), rule);
+  const matches = textMatcher(document.getText(), rule);
 
-  return match.map((match, i) => {
-    return {
-      ...match,
-      range: new vscode.Range(
-        document.positionAt(match.start),
-        document.positionAt(match.end)
-      ),
-    };
+  return matches.map((match) => {
+    return match.map((match) => {
+      return {
+        ...match,
+        range: new vscode.Range(
+          document.positionAt(match.start),
+          document.positionAt(match.end)
+        ),
+      };
+    });
   });
 }
 
@@ -58,13 +69,13 @@ export function documentMatcher(
  *
  * Dollar signs can be escaped with a backslash, so `"\$1"` is not replaced.
  */
-export function replaceMatches(template: string, match: RegExpExecArray) {
+export function replaceMatches(
+  template: string,
+  matchGroups: { match: string }[]
+) {
   return template
     .replace(/(^|[^\\])\$(\d)/g, (indexMatch, nonEscapeChar, index) => {
-      return (
-        nonEscapeChar +
-        ((match as RegExpExecArray)[Number(index)] ?? `$${index}`)
-      );
+      return nonEscapeChar + (matchGroups[Number(index)]?.match ?? `$${index}`);
     })
     .replace(/\\\$/g, "$");
 }
