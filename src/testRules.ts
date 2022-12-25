@@ -69,7 +69,7 @@ export const testRules: Rule[] = [
     // comment: "Markdown link",
     // TODO: Rename these params. Less focus on "links"
     // TODO: This nested capture group fully breaks the concepts used in `documentMatcher`...
-    linkPattern: "\\[(.+?)\\](\\((.+?)\\))",
+    linkPattern: "\\[(1 .+?)\\](\\((.+?)\\))",
     linkPatternFlags: "g",
     languages: ["*"],
     effects: [
@@ -78,15 +78,41 @@ export const testRules: Rule[] = [
         linkTarget: "$3",
         color: "#66D9EF",
       },
-      // {
-      //   captureGroup: 1,
-      //   hoverMessage: "Link to $3",
-      //   linkTarget: "$3",
-      // },
       {
         captureGroup: 2,
-        // color: "#66D9EF",
         replaceWith: "",
+      },
+    ],
+  },
+  {
+    linkPattern: "\\[(2 .+?)\\](\\((.+?)\\))",
+    linkPatternFlags: "g",
+    languages: ["*"],
+    effects: [
+      {
+        hoverMessage: "Link to $3",
+        linkTarget: "$3",
+        color: "#66D9EF",
+        replaceWith: "$1",
+      },
+    ],
+  },
+  {
+    linkPattern: "\\[(3 .+?)\\](\\((.+?)\\))",
+    linkPatternFlags: "g",
+    languages: ["*"],
+    effects: [
+      // TODO: Fix this so the order does not matter
+      {
+        captureGroup: 1,
+        color: "#66D9EF",
+      },
+      {
+        captureGroup: 2,
+        replaceWith: "",
+      },
+      {
+        color: "none",
       },
     ],
   },
@@ -101,19 +127,19 @@ export const testRules: Rule[] = [
     ],
   },
   // TODO: Overlapping rules make the "after" render option break. Look into it.
-  // {
-  //   linkPattern: "https?:\\/\\/([^/\\s]+)(\\/[^/\\s]+)?",
-  //   linkPatternFlags: "img",
-  //   languages: ["*"],
-  //   effects: [
-  //     {
-  //       // color: "#ff2722",
+  {
+    linkPattern: "https?:\\/\\/([^/\\s]+)(\\/[^\\s]*)?",
+    linkPatternFlags: "img",
+    languages: ["*"],
+    effects: [
+      {
+        // color: "#ff2722",
 
-  //       replaceWith: "$1",
-  //       linkTarget: "$0",
-  //     },
-  //   ],
-  // },
+        replaceWith: "$1",
+        linkTarget: "$0",
+      },
+    ],
+  },
   {
     linkPattern: "(TODO:)(.+)",
     linkPatternFlags: "g",

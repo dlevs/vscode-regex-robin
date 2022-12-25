@@ -17,7 +17,9 @@ export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
 
     return matches.flatMap((matchGroups) => {
       return this.rule.effects.flatMap((effect): vscode.DocumentLink | [] => {
-        if (!effect.linkTarget) {
+        const group = matchGroups[effect.captureGroup ?? 0];
+
+        if (!effect.linkTarget || !group) {
           return [];
         }
 
@@ -25,7 +27,7 @@ export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
 
         return {
           // TODO: Default higher up
-          range: matchGroups[effect.captureGroup ?? 0].range,
+          range: group.range,
           target: vscode.Uri.parse(url),
         };
       });
@@ -54,15 +56,17 @@ export class TerminalLinkDefintionProvider
 
     return matches.flatMap((matchGroups) => {
       return this.rule.effects.flatMap((effect): TerminalLink | [] => {
-        if (!effect.linkTarget) {
+        const group = matchGroups[effect.captureGroup ?? 0];
+
+        if (!effect.linkTarget || !group) {
           return [];
         }
 
         const url = replaceMatches(effect.linkTarget, matchGroups);
 
         return {
-          startIndex: matchGroups[effect.captureGroup ?? 0].start,
-          length: matchGroups[effect.captureGroup ?? 0].match.length,
+          startIndex: group.start,
+          length: group.match.length,
           target: url,
           // TODO: Tooltip does not render markdown. And be consistent with tooltip usage if possible.
           // tooltip:

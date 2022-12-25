@@ -132,16 +132,21 @@ function update() {
 
   for (const decoration of allColorDecorations) {
     const relevantMatches = decorationMap.get(decoration) ?? [];
-    const ranges = relevantMatches.map(
-      ({ matchGroups, effect }): vscode.DecorationOptions => {
+    const ranges = relevantMatches.flatMap(
+      ({ matchGroups, effect }): vscode.DecorationOptions | [] => {
         // TODO: Defaults higher up (?? 0)
-        const { range } = matchGroups[effect.captureGroup ?? 0];
-        const lineIsInSelection = rangesOverlapLines(range, selection);
+        const group = matchGroups[effect.captureGroup ?? 0];
+
+        if (!group) {
+          return [];
+        }
+
+        const lineIsInSelection = rangesOverlapLines(group.range, selection);
 
         let replacementText = "";
 
         if (!lineIsInSelection && effect.replaceWith != null) {
-          hideRanges.push(range);
+          hideRanges.push(group.range);
 
           replacementText = replaceMatches(effect.replaceWith, matchGroups);
           if (
@@ -179,7 +184,7 @@ function update() {
           : undefined;
 
         return {
-          range,
+          range: group.range,
           hoverMessage,
           renderOptions,
         };

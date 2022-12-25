@@ -11,7 +11,7 @@ type MatchCaptureGroup = {
   match: string;
   start: number;
   end: number;
-};
+} | null;
 
 export function textMatcher(text: string, rule: MinimalRule) {
   let flags = rule.linkPatternFlags;
@@ -28,7 +28,13 @@ export function textMatcher(text: string, rule: MinimalRule) {
     const { indices } = match;
 
     const groups = match.map((match, i) => {
-      const [start, end] = indices[i];
+      const matchIndices = indices[i];
+
+      if (match == null || matchIndices == null) {
+        return null;
+      }
+
+      const [start, end] = matchIndices;
 
       return { match, start, end };
     });
@@ -47,6 +53,10 @@ export function documentMatcher(
 
   return matches.map((match) => {
     return match.map((match) => {
+      if (match == null) {
+        return null;
+      }
+
       return {
         ...match,
         range: new vscode.Range(
@@ -71,7 +81,7 @@ export function documentMatcher(
  */
 export function replaceMatches(
   template: string,
-  matchGroups: { match: string }[]
+  matchGroups: ({ match: string } | null)[]
 ) {
   return template
     .replace(/(^|[^\\])\$(\d)/g, (indexMatch, nonEscapeChar, index) => {
