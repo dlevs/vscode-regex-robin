@@ -19,11 +19,11 @@ export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
       return this.rule.effects.flatMap((effect): vscode.DocumentLink | [] => {
         const group = matchGroups[effect.captureGroup ?? 0];
 
-        if (!effect.linkTarget || !group) {
+        if (!effect.link || !group) {
           return [];
         }
 
-        const url = replaceMatches(effect.linkTarget, matchGroups);
+        const url = replaceMatches(effect.link, matchGroups);
 
         return {
           // TODO: Default higher up
@@ -58,11 +58,11 @@ export class TerminalLinkDefinitionProvider
       return this.rule.effects.flatMap((effect): TerminalLink | [] => {
         const group = matchGroups[effect.captureGroup ?? 0];
 
-        if (!effect.linkTarget || !group) {
+        if (!effect.link || !group) {
           return [];
         }
 
-        const url = replaceMatches(effect.linkTarget, matchGroups);
+        const url = replaceMatches(effect.link, matchGroups);
 
         return {
           startIndex: group.start,

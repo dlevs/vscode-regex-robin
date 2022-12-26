@@ -21,7 +21,7 @@ export interface Rule {
   languages: string[];
   effects: {
     captureGroup: number;
-    linkTarget?: string;
+    link?: string;
     inlineReplacement?: string;
     hoverMessage?: string;
     style?: vscode.ThemableDecorationRenderOptions & {
@@ -85,7 +85,7 @@ const testConfig: ConfigInput = {
       regex: "(CORE|FS|JM|PPA|IN|LUK2)-\\d+",
       effects: [
         {
-          linkTarget: "https://ticknovate.atlassian.net/browse/$0",
+          link: "https://ticknovate.atlassian.net/browse/$0",
           style: { color: "#66D9EF" },
           hoverMessage: "Jira ticket **$0**",
           // inlineReplacement: "$0",
@@ -96,7 +96,7 @@ const testConfig: ConfigInput = {
       regex: "#(\\d+)",
       effects: [
         {
-          linkTarget: "https://github.com/ticknovate/ticknovate/pull/$1",
+          link: "https://github.com/ticknovate/ticknovate/pull/$1",
           style: { color: "#66D9EF" },
           hoverMessage: "bar",
         },
@@ -133,13 +133,13 @@ const testConfig: ConfigInput = {
     // },
     {
       // comment: "Markdown link",
-      // TODO: Rename these params. Less focus on "links"
       // TODO: This nested capture group fully breaks the concepts used in `documentMatcher`...
       regex: "\\[(1 .+?)\\](\\((.+?)\\))",
+      // TODO: rename "effects" to "groups"? Or "regexGroups"? Make "captureGroup" _just_ "group"?
       effects: [
         {
           hoverMessage: "Link to $3",
-          linkTarget: "$3",
+          link: "$3",
           style: { color: "#66D9EF" },
         },
         {
@@ -172,7 +172,7 @@ const testConfig: ConfigInput = {
         },
         {
           hoverMessage: "Link to $3",
-          linkTarget: "$3",
+          link: "$3",
           style: { color: "#66D9EF", textDecoration: "none" },
         },
       ],
@@ -207,7 +207,7 @@ const testConfig: ConfigInput = {
         },
         {
           hoverMessage: "Link to $3",
-          linkTarget: "$3",
+          link: "$3",
           style: { color: "#66D9EF", textDecoration: "none" },
         },
       ],
@@ -217,7 +217,7 @@ const testConfig: ConfigInput = {
       effects: [
         {
           hoverMessage: "Link to $3",
-          linkTarget: "$3",
+          link: "$3",
           style: { color: "#66D9EF" },
           inlineReplacement: "$1",
         },
@@ -276,7 +276,7 @@ const testConfig: ConfigInput = {
       regex: "([A-Za-z_-]+)#(\\d+)",
       effects: [
         {
-          linkTarget: "https://github.com/ticknovate/$1/pull/$2",
+          link: "https://github.com/ticknovate/$1/pull/$2",
         },
       ],
     },

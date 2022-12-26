@@ -1,6 +1,6 @@
-# Link Patterns
+# Regex Raven
 
-**Link Patterns** is a VS Code extension that automatically turns text into links based upon regex patterns.
+**Regex Raven** is a VS Code extension that automatically turns text into links based upon regex patterns.
 
 ![Animated gif showing a code comment that has a link that can be clicked](assets/usage.gif)
 
@@ -75,6 +75,10 @@ TODO: Uinstall `inlineFold` plugin
 ## Limitations
 
 - With "Word wrap" enabled, if text would wrap onto another line, then the extra line persists even if using the "replaceWith" option to display shorter text.
+
+## The logo
+
+The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
 
 ## Contributing
 

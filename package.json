@@ -1,7 +1,7 @@
 {
-  "name": "patterns",
-  "displayName": "Link Patterns",
-  "description": "Automatically turn text into links based upon regex patterns.",
+  "name": "regex-raven",
+  "displayName": "Regex Raven",
+  "description": "Style, manipulate and create links in your editor using regular expressions.",
   "version": "1.0.2",
   "publisher": "DanLevett",
   "license": "MIT",
@@ -9,7 +9,7 @@
     "vscode": "^1.74.0"
   },
   "repository": {
-    "url": "https://github.com/dlevs/vscode-patterns"
+    "url": "https://github.com/dlevs/vscode-regex-raven"
   },
   "categories": [
     "Other"
@@ -19,9 +19,15 @@
   ],
   "icon": "assets/icon.png",
   "keywords": [
-    "link",
-    "pattern",
     "regex",
+    "color",
+    "highlight",
+    "link",
+    "replace",
+    "inline",
+    "shorten",
+    "decorate",
+    "pattern",
     "auto",
     "autolink"
   ],
@@ -29,7 +35,7 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "Pattern Links",
+      "title": "Regex Raven",
       "properties": {
         "patternlinks.rules": {
           "type": "array",
