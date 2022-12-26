@@ -10,6 +10,7 @@ type ConfigInput = PartialDeep<Config, { recurseIntoArrays: true }>;
 export interface Rule {
   regex: string;
   regexFlags: {
+    // TODO: string OR object here?
     raw: string;
     global?: boolean;
     caseInsensitive?: boolean;
@@ -31,7 +32,7 @@ export interface Rule {
 }
 
 // TODO: Rename
-export const EXTENSION_NAME = "patternlinks";
+export const EXTENSION_NAME = "regexraven";
 
 export function getConfig(): Config {
   // const config: PartialDeep<Config> =
@@ -280,20 +281,7 @@ const testConfig: ConfigInput = {
         },
       ],
     },
-    // TODO: Overlapping rules make the "after" render option break. Look into it.
-    // {
-    //   regex: "https?:\\/\\/([^/\\s]+)(\\/[^\\s]*)?",
-    //   regexFlags: "img",
-    //   languages: ["*"],
-    //   effects: [
-    //     {
-    //       // style: {color: "#ff2722"},
 
-    //       inlineReplacement: "$1",
-    //       linkTarget: "$0",
-    //     },
-    //   ],
-    // },
     {
       // TODO: Try this, too   regex: "(TODO:)(.{1,10})(.*)?",
       regex: "(TODO:)(.{1,10})(.*)?",
@@ -308,6 +296,18 @@ const testConfig: ConfigInput = {
         },
         {
           style: { color: "#ff2722" },
+        },
+      ],
+    },
+    // TODO: Document overlapping rules / rule precedence
+    {
+      regex: "https?:\\/\\/([^\\/\\s)]+)(\\/[^\\s)]*)?",
+      regexFlags: { caseInsensitive: true, global: true, multiline: true },
+      effects: [
+        {
+          style: { color: "white" },
+          inlineReplacement: "$1",
+          link: "$0",
         },
       ],
     },

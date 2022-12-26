@@ -10,7 +10,7 @@ Multiple patterns can be defined in your VS Code settings. The following example
 
 ```jsonc
 {
-  "patternlinks.rules": [
+  "regexraven.rules": [
     {
       "linkPattern": "ISSUE-\\d+",
       "linkTarget": "https://myorg.atlassian.net/browse/$0"
@@ -37,40 +37,65 @@ Multiple patterns can be defined in your VS Code settings. The following example
 
 ### Rule precedence
 
-When two rules apply to the same text, the one defined last wins.
+### Styles
 
-```jsonc
+Styles are applied in the order they are defined. Styles can overlap.
+
+With the example config below, the text "hello world" would have a red "hello" and a blue "world".
+
+```json
 {
-  "patternlinks.rules": [
-    // Match links like repo-name#22 to the relevant pull request
+  "regexraven.rules": [
     {
-      "linkPattern": "([a-z_-]+)#(\\d+)",
-      "linkPatternFlags": "i", // Case insensitive
-      "linkTarget": "https://github.com/myorg/$1/pull/$2"
+      "regex": "hello world",
+      "effects": [{ "color": "red" }]
     },
-    // Match links like special-case#22 to the relevant pull request,
-    // which is in a different github organisation, and has a long,
-    // inconvenient name.
     {
-      "linkPattern": "special-case#(\\d+)",
-      "linkTarget": "https://github.com/someorg/really-long-inconvenient-name/pull/$1"
+      "regex": "world",
+      "effects": [{ "color": "blue" }]
     }
   ]
 }
 ```
 
-The text `special-case#22` technically matches both of these rules, but the second one is the one that takes effect.
+If we reverse the order of these rules, then the entire text would be red.
 
-<!--
-⚠️ This relies on potentially undocumented behaviour.
+TODO: How do overlapping "inlineReplacement"s work?
+
+### Links
+
+When two link rules apply to the same text, the one defined last wins.
+
+```json
+{
+  "regexraven.rules": [
+    // Match links like repo-name#22 to the relevant pull request
+    {
+      "regex": "([a-z_-]+)#(\\d+)",
+      "regexFlags": { "caseInsensitive": true },
+      "effects": [{ "link": "https://github.com/myorg/$1/pull/$2" }]
+    },
+    // Match links like special-case#22 to the relevant pull request,
+    // which is in a different github organisation, and has a long,
+    // inconvenient name.
+    {
+      "regex": "special-case#(\\d+)",
+      "effects": [
+        {
+          "link": "https://github.com/someorg/really-long-inconvenient-name/pull/$1"
+        }
+      ]
+    }
+  ]
+}
+```
+
+The second rule is the one that would take effect for the text "special-case#22", despite the fact that the regex for both rules match the text.
+
+<!-- This relies on potentially undocumented behaviour.
 
 This extension does not enforce this logic, but instead relies on the fact that VS Code
-just works like this by default.
-
-TODO: Register only one `LinkDefinitionProvider`, which returns a maximum of one link per text range.
-
-TODO: Uinstall `inlineFold` plugin
- -->
+just works like this by default. -->
 
 ## Limitations
 
@@ -84,5 +109,5 @@ The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
 
 1. Clone this repository
 2. `npm install` to install dependencies
-3. `npm run dev` to start the compiler in watch mode
+3. `npm run watch` to start the compiler in watch mode
 4. Open this folder in VS Code and start the debugger (`F5`).

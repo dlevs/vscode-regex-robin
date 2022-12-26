@@ -28,7 +28,12 @@ function getDecoratedRules() {
 
   // allDecorations = new Set();
 
-  return getConfig().rules.map((rule) => {
+  // The first-applied style "wins" when two styles apply to the same range.
+  // As a human, the intuitive behavior is that rules that apply later in
+  // the list overwrite the ones that came before, so we reverse the list.
+  const rules = [...getConfig().rules].reverse();
+
+  return rules.map((rule) => {
     return {
       ...rule,
       effects: rule.effects.map((effect) => {
@@ -55,6 +60,8 @@ function updateAnnotations() {
 
   if (!editor || !document) return;
 
+  // TODO: Check language
+
   const matches = decoratedRules.flatMap((rule) => {
     return documentMatcher(document, getRuleRegex(rule)).map((matchGroups) => {
       return { matchGroups, rule };
@@ -67,7 +74,6 @@ function updateAnnotations() {
   //   });
 
   // Group matches by decoration
-  // TODO: Use lodash
   const allEffects = matches.flatMap(({ rule, matchGroups }) => {
     // TODO: Any way to allow nested effects by doing a global sort on effects?
     // Or is that impossible due to partial overlapping?
@@ -82,6 +88,7 @@ function updateAnnotations() {
     });
   });
 
+  // TODO: Decorations have "dispose" method, use that
   const decorationMap = groupByMap(
     allEffects,
     ({ effect }) => effect.decoration
@@ -134,7 +141,7 @@ function updateAnnotations() {
                   // TODO: Put in the config options ability to style this independently
                   ...effect.style,
                   contentText: replacementText,
-                  fontStyle: "normal",
+                  fontStyle: "normal", // TODO
                 },
               }
             : undefined,

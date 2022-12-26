@@ -37,7 +37,7 @@
       "type": "object",
       "title": "Regex Raven",
       "properties": {
-        "patternlinks.rules": {
+        "regexraven.rules": {
           "type": "array",
           "items": {
             "type": "object",
@@ -81,7 +81,7 @@
   "scripts": {
     "vscode:prepublish": "npm run build && npm run lint && npm run test",
     "build": "tsc",
-    "dev": "tsc -watch",
+    "watch": "tsc -watch",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "vitest"
   },
