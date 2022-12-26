@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import { getRuleRegex, Rule } from "./config";
-import { textMatcher, replaceMatches, documentMatcher } from "./util";
+import {
+  textMatcher,
+  replaceMatches,
+  documentMatcher,
+  MinimalDocument,
+} from "./util";
 
 /**
  * Provide links for the given regex and target template.
@@ -12,7 +17,7 @@ export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
     this.rule = rule;
   }
 
-  provideDocumentLinks(document: vscode.TextDocument) {
+  provideDocumentLinks(document: MinimalDocument) {
     const matches = documentMatcher(document, getRuleRegex(this.rule));
 
     return matches.flatMap((matchGroups) => {

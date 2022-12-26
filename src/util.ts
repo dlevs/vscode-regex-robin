@@ -1,7 +1,6 @@
 // TODO: Rename files in this project
 import * as vscode from "vscode";
 import execWithIndices, { RegExpExecArray } from "regexp-match-indices";
-import { Rule } from "./config";
 
 // TODO: Unit tests
 
@@ -10,6 +9,11 @@ type MatchCaptureGroup = {
   start: number;
   end: number;
 } | null;
+
+export type MinimalDocument = Pick<
+  vscode.TextDocument,
+  "getText" | "positionAt"
+>;
 
 export function textMatcher(text: string, regex: RegExp) {
   const matches: MatchCaptureGroup[][] = [];
@@ -36,7 +40,7 @@ export function textMatcher(text: string, regex: RegExp) {
   return matches;
 }
 
-export function documentMatcher(document: vscode.TextDocument, regex: RegExp) {
+export function documentMatcher(document: MinimalDocument, regex: RegExp) {
   const matches = textMatcher(document.getText(), regex);
 
   return matches.map((match) => {

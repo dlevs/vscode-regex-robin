@@ -79,28 +79,24 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile && npm run lint && npm run test",
-    "compile": "tsc -p ./",
+    "vscode:prepublish": "npm run build && npm run lint && npm run test",
+    "build": "tsc",
+    "dev": "tsc -watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "watch": "tsc -watch -p ./",
-    "test": "node ./out/test/runTest.js"
+    "test": "vitest"
   },
   "devDependencies": {
-    "@types/glob": "^8.0.0",
     "@types/lodash": "^4.14.191",
-    "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.17",
     "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
-    "@vscode/test-electron": "^2.2.1",
     "eslint": "^8.30.0",
     "eslint-config-prettier": "^8.5.0",
-    "glob": "^8.0.3",
-    "mocha": "^10.2.0",
     "prettier": "^2.8.1",
     "type-fest": "^3.4.0",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "vitest": "^0.26.2"
   },
   "dependencies": {
     "lodash": "^4.17.21",
