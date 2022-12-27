@@ -7,7 +7,7 @@ import {
   getDecorationTypes,
 } from "./util";
 
-export function updateAnnotations(
+export function updateDecoration(
   matches: DocumentMatch[],
   ruleDecorations: vscode.TextEditorDecorationType[]
 ) {

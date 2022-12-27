@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { updateAnnotations } from "./annotations";
+import { updateDecoration } from "./decoration";
 import { LinkProvider } from "./links";
 import { EXTENSION_NAME, getConfig } from "./config";
 import { TreeProvider } from "./tree";
@@ -35,7 +35,7 @@ function initFromConfig() {
     () => {
       const matches = getDocumentMatches(config.rules);
       treeProvider.updateMatches(matches);
-      updateAnnotations(matches, config.ruleDecorations);
+      updateDecoration(matches, config.ruleDecorations);
     },
     50,
     { leading: true, trailing: true }
