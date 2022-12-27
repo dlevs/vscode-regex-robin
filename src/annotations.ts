@@ -1,77 +1,21 @@
 import * as vscode from "vscode";
 import { orderBy, throttle } from "lodash";
-import { getConfig, getRuleRegex } from "./config";
 import {
   rangesOverlapLines,
   replaceMatches,
-  documentMatcher,
   groupByMap,
+  DocumentMatch,
+  getAllDecorations,
+  getDecorationTypes,
 } from "./util";
 
 // const config = getConfig();
 
-const decorationTypes = {
-  none: vscode.window.createTextEditorDecorationType({}),
-  hide: vscode.window.createTextEditorDecorationType({
-    textDecoration: "none; display: none;",
-  }),
-};
-
-let allDecorations = new Set<vscode.TextEditorDecorationType>();
-
-function getDecoratedRules() {
-  // TODO:
-  // for (const decoration of allDecorations) {
-  //   // Clear old decorations
-  //   vscode.window.activeTextEditor?.setDecorations(decoration, []);
-  // }
-
-  // allDecorations = new Set();
-
-  // The first-applied style "wins" when two styles apply to the same range.
-  // As a human, the intuitive behavior is that rules that apply later in
-  // the list overwrite the ones that came before, so we reverse the list.
-  const rules = [...getConfig().rules].reverse();
-
-  return rules.map((rule) => {
-    return {
-      ...rule,
-      effects: rule.effects.map((effect) => {
-        const decoration = effect.style
-          ? vscode.window.createTextEditorDecorationType(effect.style)
-          : decorationTypes.none;
-
-        if (decoration) {
-          allDecorations.add(decoration);
-        }
-
-        return { ...effect, decoration };
-      }),
-    };
-  });
-}
-
-// TODO: Do this when config changes
-const decoratedRules = getDecoratedRules();
-
-function updateAnnotations() {
+export function updateAnnotations(matches: DocumentMatch[]) {
   const editor = vscode.window.activeTextEditor;
-  const document = editor?.document;
 
-  if (!editor || !document) return;
-
-  // TODO: Check language
-
-  const matches = decoratedRules.flatMap((rule) => {
-    return documentMatcher(document, getRuleRegex(rule)).map((matchGroups) => {
-      return { matchGroups, rule };
-    });
-  });
-
-  // const disappearDecorationType =
-  //   vscode.window.createTextEditorDecorationType({
-  //     textDecoration: "none; display: none;", // a hack to inject custom style
-  //   });
+  // TODO: No - return editor from `getDocumentMatches`
+  if (!editor) return;
 
   // Group matches by decoration
   const allEffects = matches.flatMap(({ rule, matchGroups }) => {
@@ -97,7 +41,7 @@ function updateAnnotations() {
   const hideRanges: vscode.Range[] = [];
   // Apply decoration
 
-  for (const decoration of allDecorations) {
+  for (const decoration of getAllDecorations()) {
     const relevantMatches = decorationMap.get(decoration) ?? [];
     const ranges = relevantMatches.flatMap(
       ({ matchGroups, effect }): vscode.DecorationOptions | [] => {
@@ -152,10 +96,5 @@ function updateAnnotations() {
     editor.setDecorations(decoration, ranges);
   }
 
-  editor.setDecorations(decorationTypes.hide, hideRanges);
+  editor.setDecorations(getDecorationTypes().hide, hideRanges);
 }
-
-export const updateAnnotationsThrottled = throttle(updateAnnotations, 50, {
-  leading: true,
-  trailing: true,
-});

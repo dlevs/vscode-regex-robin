@@ -111,3 +111,7 @@ The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
 2. `npm install` to install dependencies
 3. `npm run watch` to start the compiler in watch mode
 4. Open this folder in VS Code and start the debugger (`F5`).
+
+## Testing
+
+TODO: Document behaviour here, and common issues: clicking inlineReplacement not doing anything. Color precedence, nested regex, etc

@@ -1,17 +1,43 @@
 import * as vscode from "vscode";
-import { updateAnnotationsThrottled } from "./annotations";
+import { updateAnnotations } from "./annotations";
 import {
   LinkDefinitionProvider,
   TerminalLinkDefinitionProvider,
 } from "./links";
 import { getConfig } from "./config";
+import { TreeProvider } from "./tree";
+import { getDocumentMatches } from "./util";
+import { throttle } from "lodash";
 
 // TODOL What is this - when is it used?
 
 // TODO: See how they do it here: https://github.com/Gruntfuggly/todo-tree/blob/master/src/extension.js
 export function activate(context: vscode.ExtensionContext): void {
   // initFromConfig(context);
-  updateAnnotationsThrottled();
+
+  const update = throttle(
+    () => {
+      const matches = getDocumentMatches();
+      treeProvider.updateMatches(matches);
+      updateAnnotations(matches);
+    },
+    50,
+    { leading: true, trailing: true }
+  );
+
+  // TODO: Something like that needed?
+  // vscode.window.onDidChangeActiveTextEditor(editor => {
+  // 	activeEditor = editor;
+  // 	if (editor) {
+  // 		triggerUpdateDecorations();
+  // 	}
+  // }, null, context.subscriptions);
+
+  // TODO: This to return the annotation disposables, not "updateAnnotations"
+  const matches = getDocumentMatches();
+
+  updateAnnotations(matches);
+  const treeProvider = new TreeProvider(matches);
 
   context.subscriptions.push(
     // vscode.workspace.onDidChangeConfiguration((event) => {
@@ -19,8 +45,9 @@ export function activate(context: vscode.ExtensionContext): void {
     //     initFromConfig(context);
     //   }
     // }),
-    vscode.window.onDidChangeTextEditorSelection(updateAnnotationsThrottled),
-    vscode.workspace.onDidChangeTextDocument(updateAnnotationsThrottled),
+    vscode.window.registerTreeDataProvider("regexRaven", treeProvider),
+    vscode.window.onDidChangeTextEditorSelection(update),
+    vscode.workspace.onDidChangeTextDocument(update),
     ...getConfig().rules.flatMap((rule) => {
       return [
         vscode.languages.registerDocumentLinkProvider(

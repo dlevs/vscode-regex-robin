@@ -1,6 +1,20 @@
 // TODO: Rename files in this project
 import * as vscode from "vscode";
 import execWithIndices, { RegExpExecArray } from "regexp-match-indices";
+import { getConfig, getRuleRegex } from "./config";
+
+let allDecorations = new Set<vscode.TextEditorDecorationType>();
+const decorationTypes = {
+  none: vscode.window.createTextEditorDecorationType({}),
+  hide: vscode.window.createTextEditorDecorationType({
+    textDecoration: "none; display: none;",
+  }),
+};
+
+// TODO: Tidy. Don't export like this. This stuff does not belong in "util.ts".
+export function getAllDecorations() {
+  return allDecorations;
+}
 
 // TODO: Unit tests
 
@@ -75,11 +89,14 @@ export function replaceMatches(
   template: string,
   matchGroups: ({ match: string } | null)[]
 ) {
-  return template
-    .replace(/(^|[^\\])\$(\d)/g, (indexMatch, nonEscapeChar, index) => {
-      return nonEscapeChar + (matchGroups[Number(index)]?.match ?? `$${index}`);
-    })
-    .replace(/\\\$/g, "$");
+  return (
+    template
+      // TODO: Add a test for back-to-back matches
+      .replace(/(^|[^\\])\$(\d)/g, (indexMatch, nonEscapeChar, index) => {
+        return nonEscapeChar + (matchGroups[Number(index)]?.match ?? "");
+      })
+      .replace(/\\\$/g, "$")
+  );
 }
 
 // TODO: Test
@@ -109,4 +126,80 @@ export function groupByMap<Key, Item>(
   }
 
   return grouped;
+}
+
+// TODO: Do this when config changes
+const decoratedRules = getDecoratedRules();
+
+// TODO: What about terminal matches?
+export type DocumentMatch = ReturnType<typeof getDocumentMatches>[number];
+
+export function getDocumentMatches() {
+  const editor = vscode.window.activeTextEditor;
+  const document = editor?.document;
+
+  if (!editor || !document) return [];
+
+  return decoratedRules.matches
+    .filter((rule) => {
+      return (
+        rule.languages.includes("*") ||
+        rule.languages.includes(document.languageId)
+      );
+    })
+    .flatMap((rule) => {
+      return documentMatcher(document, getRuleRegex(rule)).map(
+        (matchGroups) => {
+          return { matchGroups, rule, documentUri: document.uri };
+        }
+      );
+    });
+}
+
+// TODO: no.....
+export function getDecorationTypes() {
+  return decorationTypes;
+}
+
+function getDecoratedRules() {
+  // TODO:
+  // for (const decoration of allDecorations) {
+  //   // Clear old decorations
+  //   vscode.window.activeTextEditor?.setDecorations(decoration, []);
+  // }
+
+  // allDecorations = new Set();
+
+  // The first-applied style "wins" when two styles apply to the same range.
+  // As a human, the intuitive behavior is that rules that apply later in
+  // the list overwrite the ones that came before, so we reverse the list.
+  const rules = [...getConfig().rules].reverse();
+
+  const matches = rules.map((rule) => {
+    return {
+      ...rule,
+      effects: rule.effects.map((effect) => {
+        const decoration = effect.style
+          ? vscode.window.createTextEditorDecorationType(effect.style)
+          : decorationTypes.none;
+
+        if (decoration) {
+          allDecorations.add(decoration);
+        }
+
+        return { ...effect, decoration };
+      }),
+    };
+  });
+
+  return {
+    matches,
+
+    // TODO: Actually dispose
+    dispose() {
+      for (const decoration of allDecorations) {
+        decoration.dispose();
+      }
+    },
+  };
 }

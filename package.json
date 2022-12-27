@@ -76,6 +76,16 @@
           "markdownDescription": "A list of rules for turning text into clickable links."
         }
       }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "regexRaven",
+          "name": "Regex Raven",
+          "icon": "assets/icon.png",
+          "contextualTitle": "Regex matches"
+        }
+      ]
     }
   },
   "scripts": {
