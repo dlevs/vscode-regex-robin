@@ -35,7 +35,7 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
       return {
         // TODO: We could have a separate pane per "group", so an entire "TODO" pane. Then it's more about user's wishes, not emphasising this extension
         group: rule.tree.group,
-        label: replaceMatches(rule.tree.label, matchGroups),
+        label: replaceMatches(rule.tree.label, matchGroups).trim(),
         target: {
           uri: documentUri,
           range: matchGroups[0]!.range,

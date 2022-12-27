@@ -92,8 +92,8 @@ export function replaceMatches(
   return (
     template
       // TODO: Add a test for back-to-back matches
-      .replace(/(^|[^\\])\$(\d)/g, (indexMatch, nonEscapeChar, index) => {
-        return nonEscapeChar + (matchGroups[Number(index)]?.match ?? "");
+      .replace(/(?<!\\)\$(\d)/g, (indexMatch, index) => {
+        return matchGroups[Number(index)]?.match ?? "";
       })
       .replace(/\\\$/g, "$")
   );

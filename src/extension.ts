@@ -37,6 +37,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const matches = getDocumentMatches();
 
   updateAnnotations(matches);
+  // TODO: Don't register this if no tree config exists
   const treeProvider = new TreeProvider(matches);
 
   context.subscriptions.push(
