@@ -30,6 +30,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
 function initFromConfig() {
   const config = getConfig();
+  const treeProvider = new TreeProvider([]);
   const update = throttle(
     () => {
       const matches = getDocumentMatches(config.rules);
@@ -40,14 +41,10 @@ function initFromConfig() {
     { leading: true, trailing: true }
   );
 
-  // TODO: This to return the annotation disposables, not "updateAnnotations"
-  const matches = getDocumentMatches(config.rules);
-
-  updateAnnotations(matches, config.ruleDecorations);
   // TODO: Don't register this if no tree config exists
-  const treeProvider = new TreeProvider(matches);
+  update();
 
-  const disposable = vscode.Disposable.from(
+  return vscode.Disposable.from(
     vscode.window.onDidChangeTextEditorSelection(update),
     vscode.window.registerTreeDataProvider("regexRaven", treeProvider),
     vscode.workspace.onDidChangeTextDocument(update),
@@ -64,6 +61,4 @@ function initFromConfig() {
     }),
     config
   );
-
-  return disposable;
 }
