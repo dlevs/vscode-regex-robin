@@ -1,10 +1,11 @@
 import * as vscode from "vscode";
-import { getRuleRegex, Rule } from "./config";
+import { Rule } from "./config";
 import {
-  textMatcher,
   replaceMatches,
-  documentMatcher,
   MinimalDocument,
+  getDocumentMatches,
+  DocumentMatch,
+  textToPseudoDocument,
 } from "./util";
 
 interface TerminalLink extends vscode.TerminalLink {
@@ -17,61 +18,57 @@ interface TerminalLink extends vscode.TerminalLink {
 export class LinkProvider
   implements vscode.DocumentLinkProvider, vscode.TerminalLinkProvider
 {
-  private rule: Rule;
+  private rules: Rule[];
 
-  constructor(rule: Rule) {
-    this.rule = rule;
+  constructor(rules: Rule[]) {
+    this.rules = rules;
   }
 
   provideDocumentLinks(document: MinimalDocument) {
-    const matches = documentMatcher(document, getRuleRegex(this.rule));
+    const matches = getDocumentMatches(this.rules, document);
 
-    return matches.flatMap((matchGroups) => {
-      return this.rule.effects.flatMap((effect): vscode.DocumentLink | [] => {
-        const group = matchGroups[effect.captureGroup ?? 0];
-
-        if (!effect.link || !group) {
-          return [];
-        }
-
-        const url = replaceMatches(effect.link, matchGroups);
-
-        return {
-          // TODO: Default higher up
-          range: group.range,
-          target: vscode.Uri.parse(url),
-        };
-      });
-    });
+    return this.mapMatches(matches, ({ range, target }) => ({
+      range,
+      target,
+    }));
   }
 
   provideTerminalLinks(context: vscode.TerminalLinkContext) {
-    const matches = textMatcher(context.line, getRuleRegex(this.rule));
+    const matches = getDocumentMatches(
+      this.rules,
+      textToPseudoDocument(context.line)
+    );
 
-    return matches.flatMap((matchGroups) => {
-      return this.rule.effects.flatMap((effect): TerminalLink | [] => {
-        const group = matchGroups[effect.captureGroup ?? 0];
-
-        if (!effect.link || !group) {
-          return [];
-        }
-
-        const url = replaceMatches(effect.link, matchGroups);
-
-        return {
-          startIndex: group.start,
-          length: group.match.length,
-          target: url,
-          // TODO: Tooltip does not render markdown. And be consistent with tooltip usage if possible.
-          // tooltip:
-          //   this.rule.hoverMessage &&
-          //   replaceMatches(this.rule.hoverMessage, match),
-        };
-      });
-    });
+    return this.mapMatches(matches, ({ range, target }) => ({
+      startIndex: range.start.character,
+      length: range.end.character - range.start.character,
+      target,
+    }));
   }
 
   handleTerminalLink(link: TerminalLink) {
     vscode.commands.executeCommand("vscode.open", link.target);
+  }
+
+  private mapMatches<T>(
+    matches: DocumentMatch[],
+    transform: (params: { range: vscode.Range; target: vscode.Uri }) => T
+  ) {
+    return matches.flatMap(({ matchGroups, rule }) => {
+      return rule.effects.flatMap((effect) => {
+        const group = matchGroups[effect.captureGroup ?? 0];
+
+        if (!effect.link || !group) {
+          return [];
+        }
+
+        const url = replaceMatches(effect.link, matchGroups);
+
+        return transform({
+          range: group.range,
+          target: vscode.Uri.parse(url),
+        });
+      });
+    });
   }
 }

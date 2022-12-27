@@ -31,6 +31,7 @@ export function activate(context: vscode.ExtensionContext): void {
 function initFromConfig() {
   const config = getConfig();
   const treeProvider = new TreeProvider([]);
+  const linkProvider = new LinkProvider(config.rules);
   const update = throttle(
     () => {
       const matches = getDocumentMatches(config.rules);
@@ -47,18 +48,9 @@ function initFromConfig() {
   return vscode.Disposable.from(
     vscode.window.onDidChangeTextEditorSelection(update),
     vscode.window.registerTreeDataProvider("regexRaven", treeProvider),
+    vscode.window.registerTerminalLinkProvider(linkProvider),
     vscode.workspace.onDidChangeTextDocument(update),
-    ...config.rules.flatMap((rule) => {
-      const linkProvider = new LinkProvider(rule);
-
-      return [
-        vscode.languages.registerDocumentLinkProvider(
-          rule.languages.map((language) => ({ language })),
-          linkProvider
-        ),
-        vscode.window.registerTerminalLinkProvider(linkProvider),
-      ];
-    }),
+    vscode.languages.registerDocumentLinkProvider(["*"], linkProvider),
     config
   );
 }

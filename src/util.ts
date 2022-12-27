@@ -18,7 +18,7 @@ type MatchCaptureGroup = {
 
 export type MinimalDocument = Pick<
   vscode.TextDocument,
-  "getText" | "positionAt"
+  "getText" | "positionAt" | "languageId" | "uri"
 >;
 
 export function textMatcher(text: string, regex: RegExp) {
@@ -125,9 +125,12 @@ export function groupByMap<Key, Item>(
 // TODO: What about terminal matches?
 export type DocumentMatch = ReturnType<typeof getDocumentMatches>[number];
 
-export function getDocumentMatches(rules: Rule[]) {
+export function getDocumentMatches(
+  rules: Rule[],
+  providedDocument?: MinimalDocument
+) {
   const editor = vscode.window.activeTextEditor;
-  const document = editor?.document;
+  const document = providedDocument ?? editor?.document;
 
   if (!editor || !document) return [];
 
@@ -150,4 +153,29 @@ export function getDocumentMatches(rules: Rule[]) {
 // TODO: no.....
 export function getDecorationTypes() {
   return decorationTypes;
+}
+
+export function textToPseudoDocument(text: string): MinimalDocument {
+  if (text.includes("\n")) {
+    // This function is only currently for passing lines in the terminal
+    // to the same functions used to handle documents. Those are only
+    // 1 line.
+    //
+    // If this function is ever used for more than that, then we should
+    // see if there is a better approach, as it's a bit jank.
+    throw new Error("Text not expected contain newlines");
+  }
+
+  return {
+    getText() {
+      return text;
+    },
+    positionAt(offset) {
+      return new vscode.Position(0, offset);
+    },
+    // TODO: Remove the need for "textMatcher" - always use document
+    // TODO: Bleh:
+    uri: vscode.Uri.parse(""),
+    languageId: "",
+  };
 }
