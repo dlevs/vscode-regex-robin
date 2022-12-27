@@ -1,17 +1,18 @@
 import * as vscode from "vscode";
-import { orderBy, throttle } from "lodash";
 import {
   rangesOverlapLines,
   replaceMatches,
   groupByMap,
   DocumentMatch,
-  getAllDecorations,
   getDecorationTypes,
 } from "./util";
 
 // const config = getConfig();
 
-export function updateAnnotations(matches: DocumentMatch[]) {
+export function updateAnnotations(
+  matches: DocumentMatch[],
+  ruleDecorations: vscode.TextEditorDecorationType[]
+) {
   const editor = vscode.window.activeTextEditor;
 
   // TODO: No - return editor from `getDocumentMatches`
@@ -19,15 +20,7 @@ export function updateAnnotations(matches: DocumentMatch[]) {
 
   // Group matches by decoration
   const allEffects = matches.flatMap(({ rule, matchGroups }) => {
-    // TODO: Any way to allow nested effects by doing a global sort on effects?
-    // Or is that impossible due to partial overlapping?
-    const sortedEffects = orderBy(
-      rule.effects,
-      (effect) => effect.captureGroup ?? 0,
-      "desc"
-    );
-
-    return sortedEffects.map((effect) => {
+    return rule.effects.map((effect) => {
       return { effect, matchGroups };
     });
   });
@@ -41,7 +34,7 @@ export function updateAnnotations(matches: DocumentMatch[]) {
   const hideRanges: vscode.Range[] = [];
   // Apply decoration
 
-  for (const decoration of getAllDecorations()) {
+  for (const decoration of ruleDecorations) {
     const relevantMatches = decorationMap.get(decoration) ?? [];
     const ranges = relevantMatches.flatMap(
       ({ matchGroups, effect }): vscode.DecorationOptions | [] => {

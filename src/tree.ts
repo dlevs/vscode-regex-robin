@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { DocumentMatch, documentMatcher, replaceMatches } from "./util";
+import { DocumentMatch, replaceMatches } from "./util";
 import { groupBy, sortBy } from "lodash";
 
 interface Entry {
@@ -63,73 +63,12 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
   }
 
   refresh(entry?: Entry): void {
-    // this.parseTree();
     if (entry) {
       this._onDidChangeTreeData.fire(entry);
     } else {
       this._onDidChangeTreeData.fire(undefined);
     }
   }
-
-  // rename(entry: Entry): void {
-  // 	// vscode.window.showInputBox({ placeHolder: 'Enter the new label' }).then(value => {
-  // 	// 	const editor = this.editor;
-  // 	// 	const tree = this.tree;
-  // 	// 	if (value !== null && value !== undefined && editor && tree) {
-  // 	// 		editor.edit(editBuilder => {
-  // 	// 			const path = json.getLocation(this.text, entry).path;
-  // 	// 			let propertyNode: json.Node | undefined = json.findNodeAtLocation(tree, path);
-  // 	// 			if (propertyNode.parent?.type !== 'array') {
-  // 	// 				propertyNode = propertyNode.parent?.children ? propertyNode.parent.children[0] : undefined;
-  // 	// 			}
-  // 	// 			if (propertyNode) {
-  // 	// 				const range = new vscode.Range(editor.document.positionAt(propertyNode.entry), editor.document.positionAt(propertyNode.entry + propertyNode.length));
-  // 	// 				editBuilder.replace(range, `"${value}"`);
-  // 	// 				setTimeout(() => {
-  // 	// 					this.parseTree();
-  // 	// 					this.refresh(entry);
-  // 	// 				}, 100);
-  // 	// 			}
-  // 	// 		});
-  // 	// 	}
-  // 	// });
-  // }
-
-  // private onActiveEditorChanged(): void {
-  // 	if (vscode.window.activeTextEditor) {
-  // 		if (vscode.window.activeTextEditor.document.uri.scheme === 'file') {
-  // 			const enabled = vscode.window.activeTextEditor.document.languageId === 'json' || vscode.window.activeTextEditor.document.languageId === 'jsonc';
-  // 			vscode.commands.executeCommand('setContext', 'jsonOutlineEnabled', enabled);
-  // 			if (enabled) {
-  // 				this.refresh();
-  // 			}
-  // 		}
-  // 	} else {
-  // 		vscode.commands.executeCommand('setContext', 'jsonOutlineEnabled', false);
-  // 	}
-  // }
-
-  // private onDocumentChanged(changeEvent: vscode.TextDocumentChangeEvent): void {
-  // 	if (this.tree && this.autoRefresh && changeEvent.document.uri.toString() === this.editor?.document.uri.toString()) {
-  // 		for (const change of changeEvent.contentChanges) {
-  // 			const path = json.getLocation(this.text, this.editor.document.entryAt(change.range.start)).path;
-  // 			path.pop();
-  // 			const node = path.length ? json.findNodeAtLocation(this.tree, path) : void 0;
-  // 			this.parseTree();
-  // 			this._onDidChangeTreeData.fire(node ? node.entry : void 0);
-  // 		}
-  // 	}
-  // }
-
-  // private parseTree(): void {
-  // 	this.text = '';
-  // 	this.tree = undefined;
-  // 	this.editor = vscode.window.activeTextEditor;
-  // 	if (this.editor && this.editor.document) {
-  // 		this.text = this.editor.document.getText();
-  // 		this.tree = json.parseTree(this.text);
-  // 	}
-  // }
 
   getChildren(entry?: Entry): Entry[] {
     if (entry == null) {
@@ -140,13 +79,6 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
   }
 
   getTreeItem(entry: Entry): vscode.TreeItem {
-    // if (!this.tree) {
-    //   throw new Error("Invalid tree");
-    // }
-    // if (!this.editor) {
-    //   throw new Error("Invalid editor");
-    // }
-
     return {
       label: entry.label,
       description: entry.target?.uri?.toString(true).split("/").pop(),
@@ -168,42 +100,4 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
       },
     };
   }
-
-  select(range: vscode.Range) {
-    if (this.editor) {
-      this.editor.selection = new vscode.Selection(range.start, range.end);
-    }
-  }
-
-  // private getIcon(node: json.Node): any {
-  //   const nodeType = node.type;
-  //   if (nodeType === "boolean") {
-  //     return {
-  //       light: this.context.asAbsolutePath(
-  //         path.join("resources", "light", "boolean.svg")
-  //       ),
-  //       dark: this.context.asAbsolutePath(
-  //         path.join("resources", "dark", "boolean.svg")
-  //       ),
-  //     };
-  //   }
-  //   if (nodeType === "string") {
-  //     return {
-  //       light: this.context.asAbsolutePath(
-  //         path.join("resources", "light", "string.svg")
-  //       ),
-  //       dark: this.context.asAbsolutePath(
-  //         path.join("resources", "dark", "string.svg")
-  //       ),
-  //     };
-  //   }
-  //   if (nodeType === "Entry") {
-  //     return {
-  //       light: this.context.asAbsolutePath(
-  //         path.join("resources", "light", "Entry.svg")
-  //       ),
-  //       dark: this.context.asAbsolutePath(
-  //         path.join("resources", "dark", "Entry.svg")
-  //       ),
-  //     };
 }

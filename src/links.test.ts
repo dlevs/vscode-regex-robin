@@ -1,7 +1,7 @@
 import * as assert from "assert";
 import type * as vscode from "vscode";
 import { describe, test } from "vitest";
-import { LinkDefinitionProvider } from "./links";
+import { LinkProvider } from "./links";
 
 // TODO: This test comes from when this extension was copied from "vscode-pattern-links".
 // It no longer makes sense for the emphasis to be on LinkDefinitionProvider. Change.
@@ -20,11 +20,11 @@ describe("LinkDefinitionProvider", () => {
   // They need reworking now that the extension is more powerful. `getLinks` is a
   // stopgap to make the tests work.
   function getLinks(regex: string, regexFlags: string, link: string) {
-    return new LinkDefinitionProvider({
+    return new LinkProvider({
       regex,
       regexFlags: { raw: regexFlags },
       languages: ["*"],
-      effects: [{ captureGroup: 0, link }],
+      effects: [{ captureGroup: 0, link, decoration: null as any }],
     }).provideDocumentLinks(document);
   }
 

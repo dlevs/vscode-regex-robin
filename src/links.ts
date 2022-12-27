@@ -7,10 +7,16 @@ import {
   MinimalDocument,
 } from "./util";
 
+interface TerminalLink extends vscode.TerminalLink {
+  target: string;
+}
+
 /**
  * Provide links for the given regex and target template.
  */
-export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
+export class LinkProvider
+  implements vscode.DocumentLinkProvider, vscode.TerminalLinkProvider
+{
   private rule: Rule;
 
   constructor(rule: Rule) {
@@ -37,23 +43,6 @@ export class LinkDefinitionProvider implements vscode.DocumentLinkProvider {
         };
       });
     });
-  }
-}
-
-interface TerminalLink extends vscode.TerminalLink {
-  target: string;
-}
-
-/**
- * Provide links for the given regex and target template.
- */
-export class TerminalLinkDefinitionProvider
-  implements vscode.TerminalLinkProvider
-{
-  private rule: Rule;
-
-  constructor(rule: Rule) {
-    this.rule = rule;
   }
 
   provideTerminalLinks(context: vscode.TerminalLinkContext) {

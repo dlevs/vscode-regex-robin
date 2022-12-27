@@ -1,8 +1,12 @@
 import * as vscode from "vscode";
-import type { PartialDeep } from "type-fest";
+import type { PartialDeep, Merge } from "type-fest";
+import { getDecorationTypes } from "./util";
+import { orderBy } from "lodash";
 
 interface Config {
   rules: Rule[];
+  ruleDecorations: vscode.TextEditorDecorationType[];
+  dispose: () => void;
 }
 
 // TODO: show warning if there's an error with a rule
@@ -31,58 +35,93 @@ export interface Rule {
     style?: vscode.ThemableDecorationRenderOptions & {
       clear?: boolean;
     };
+    /**
+     * Generated on init - not from config.
+     */
+    decoration: vscode.TextEditorDecorationType;
   }[];
 }
 
-// TODO: Rename
 export const EXTENSION_NAME = "regexraven";
 
 export function getConfig(): Config {
+  const ruleDecorations = new Set<vscode.TextEditorDecorationType>();
   const config: PartialDeep<Config> =
     vscode.workspace.getConfiguration().get(EXTENSION_NAME) ?? {};
   // const config = testConfig;
 
-  return {
-    rules: (config.rules ?? []).flatMap((rule): Rule | [] => {
-      let {
-        regex,
-        regexFlags = {},
-        languages = [],
-        effects = [],
-        tree,
-      } = rule ?? {};
+  // The first-applied style "wins" when two styles apply to the same range.
+  // As a human, the intuitive behavior is that rules that apply later in
+  // the list overwrite the ones that came before, so we reverse the list.
+  const reversedRules = (config.rules ? [...config.rules] : []).reverse();
+  const rules = reversedRules.flatMap((rule): Rule | [] => {
+    let {
+      regex,
+      regexFlags = {},
+      languages = [],
+      effects = [],
+      tree,
+    } = rule ?? {};
 
-      // No language defined means all languages.
-      if (!languages.length) {
-        languages = ["*"];
-      }
+    // No language defined means all languages.
+    if (!languages.length) {
+      languages = ["*"];
+    }
 
-      if (!effects.length || !regex) {
+    if (!effects.length || !regex) {
+      return [];
+    }
+
+    const decoratedEffects = effects.flatMap((effect) => {
+      if (!effect) {
         return [];
       }
 
+      const decoration = effect.style
+        ? vscode.window.createTextEditorDecorationType(effect.style)
+        : getDecorationTypes().none;
+
+      if (decoration) {
+        ruleDecorations.add(decoration);
+      }
+
       return {
-        regex,
-        regexFlags: {
-          raw: expandRegexFlags(regexFlags),
-        },
-        tree,
-        // Remove null / undefined
-        languages: languages.flatMap((language) => {
-          return !language ? [] : language;
-        }),
-        effects: effects.flatMap((effect) => {
-          if (!effect) {
-            return [];
-          }
-          return {
-            ...effect,
-            captureGroup: effect?.captureGroup ?? 0,
-            style: effect.style as vscode.ThemableDecorationRenderOptions,
-          };
-        }),
+        ...effect,
+        decoration,
+        captureGroup: effect?.captureGroup ?? 0,
+        style: effect.style as vscode.ThemableDecorationRenderOptions,
       };
-    }),
+    });
+
+    // TODO: Document
+    const sortedEffects = orderBy(
+      decoratedEffects,
+      (effect) => effect.captureGroup,
+      "desc"
+    );
+
+    return {
+      regex,
+      regexFlags: {
+        raw: expandRegexFlags(regexFlags),
+      },
+      tree,
+      // Remove null / undefined
+      languages: languages.flatMap((language) => {
+        return !language ? [] : language;
+      }),
+      effects: sortedEffects,
+    };
+  });
+
+  return {
+    rules,
+    ruleDecorations: Array.from(ruleDecorations),
+    dispose: () => {
+      for (const decoration of ruleDecorations) {
+        decoration.dispose();
+      }
+    },
   };
 }
 
