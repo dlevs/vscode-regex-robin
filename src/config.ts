@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import type { PartialDeep, Merge } from "type-fest";
-import { getDecorationTypes } from "./util";
+import type { PartialDeep } from "type-fest";
 import { orderBy } from "lodash";
+import { decorationTypes } from "./util/documentUtils";
 
 interface Config {
   rules: Rule[];
@@ -78,7 +78,7 @@ export function getConfig(): Config {
 
       const decoration = effect.style
         ? vscode.window.createTextEditorDecorationType(effect.style)
-        : getDecorationTypes().none;
+        : decorationTypes.none;
 
       if (decoration) {
         ruleDecorations.add(decoration);

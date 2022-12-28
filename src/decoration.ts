@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
+import { groupByMap } from "./util/collectionUtils";
 import {
   rangesOverlapLines,
-  replaceMatches,
-  groupByMap,
   DocumentMatch,
-  getDecorationTypes,
-} from "./util";
+  decorationTypes,
+} from "./util/documentUtils";
+import { replaceMatches } from "./util/stringUtils";
 
 export function updateDecoration(
   matches: DocumentMatch[],
@@ -87,5 +87,5 @@ export function updateDecoration(
     editor.setDecorations(decoration, ranges);
   }
 
-  editor.setDecorations(getDecorationTypes().hide, hideRanges);
+  editor.setDecorations(decorationTypes.hide, hideRanges);
 }

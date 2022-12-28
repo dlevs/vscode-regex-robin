@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
 import { Rule } from "./config";
 import {
-  replaceMatches,
-  MinimalDocument,
+  MinimalTextDocument,
   getDocumentMatches,
   DocumentMatch,
-  textToPseudoDocument,
-} from "./util";
+  textToMinimalDocument,
+} from "./util/documentUtils";
+import { replaceMatches } from "./util/stringUtils";
 
 interface TerminalLink extends vscode.TerminalLink {
   target: string;
@@ -24,8 +24,8 @@ export class LinkProvider
     this.rules = rules;
   }
 
-  provideDocumentLinks(document: MinimalDocument) {
-    const matches = getDocumentMatches(this.rules, document);
+  provideDocumentLinks(document: MinimalTextDocument) {
+    const matches = getDocumentMatches(document, this.rules);
 
     return this.mapMatches(matches, ({ range, target }) => ({
       range,
@@ -35,8 +35,9 @@ export class LinkProvider
 
   provideTerminalLinks(context: vscode.TerminalLinkContext) {
     const matches = getDocumentMatches(
-      this.rules,
-      textToPseudoDocument(context.line)
+      // TODO: Document matching against "terminal"
+      textToMinimalDocument(context.line, "terminal"),
+      this.rules
     );
 
     return this.mapMatches(matches, ({ range, target }) => ({

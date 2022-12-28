@@ -3,7 +3,7 @@ import { updateDecoration } from "./decoration";
 import { LinkProvider } from "./links";
 import { EXTENSION_NAME, getConfig } from "./config";
 import { TreeProvider } from "./tree";
-import { getDocumentMatches } from "./util";
+import { getDocumentMatches } from "./util/documentUtils";
 import { throttle } from "lodash";
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -34,7 +34,10 @@ function initFromConfig() {
   const linkProvider = new LinkProvider(config.rules);
   const update = throttle(
     () => {
-      const matches = getDocumentMatches(config.rules);
+      const document = vscode.window.activeTextEditor?.document;
+      const matches = document
+        ? getDocumentMatches(document, config.rules)
+        : [];
       treeProvider.updateMatches(matches);
       updateDecoration(matches, config.ruleDecorations);
     },
@@ -42,15 +45,15 @@ function initFromConfig() {
     { leading: true, trailing: true }
   );
 
-  // TODO: Don't register this if no tree config exists
   update();
 
   return vscode.Disposable.from(
     vscode.window.onDidChangeTextEditorSelection(update),
+    // TODO: Don't register this if no tree config exists
     vscode.window.registerTreeDataProvider("regexRaven", treeProvider),
     vscode.window.registerTerminalLinkProvider(linkProvider),
-    vscode.workspace.onDidChangeTextDocument(update),
     vscode.languages.registerDocumentLinkProvider(["*"], linkProvider),
+    vscode.workspace.onDidChangeTextDocument(update),
     config
   );
 }
