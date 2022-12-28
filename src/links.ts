@@ -57,7 +57,7 @@ export class LinkProvider
   ) {
     return matches.flatMap(({ matchGroups, rule }) => {
       return rule.effects.flatMap((effect) => {
-        const group = matchGroups[effect.captureGroup ?? 0];
+        const group = matchGroups[effect.captureGroup];
 
         if (!effect.link || !group) {
           return [];

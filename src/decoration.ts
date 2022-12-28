@@ -7,13 +7,27 @@ import {
 } from "./util/documentUtils";
 import { replaceMatches } from "./util/stringUtils";
 
+/**
+ * Overwrites decorations (colors, inline elements, etc) with those
+ * relevant for the current matches.
+ */
 export function updateDecoration(
   matches: DocumentMatch[],
+  /**
+   * All dynamic decoration types.
+   *
+   * This is needed for two reasons:
+   * 1. They are in the correct application order, allowing capture group
+   *    styles to apply on top of general match styles, and nested capture
+   *    group styles to apply on top of the outer matches.
+   * 2. Any decoration found not to be relevant is referred to anyway, just
+   *    to _remove_ those decorations from the document where they may have
+   *    previously applied.
+   */
   ruleDecorations: vscode.TextEditorDecorationType[]
 ) {
   const editor = vscode.window.activeTextEditor;
 
-  // TODO: No - return editor from `getDocumentMatches`
   if (!editor) return;
 
   // Group matches by decoration
@@ -22,38 +36,37 @@ export function updateDecoration(
       return { effect, matchGroups };
     });
   });
-
-  // TODO: Decorations have "dispose" method, use that
   const decorationMap = groupByMap(
     allEffects,
     ({ effect }) => effect.decoration
   );
   const selection = editor.selection;
   const hideRanges: vscode.Range[] = [];
-  // Apply decoration
 
+  // Apply decoration
   for (const decoration of ruleDecorations) {
     const relevantMatches = decorationMap.get(decoration) ?? [];
     const ranges = relevantMatches.flatMap(
       ({ matchGroups, effect }): vscode.DecorationOptions | [] => {
-        // TODO: Defaults higher up (?? 0)
-        const group = matchGroups[effect.captureGroup ?? 0];
+        const group = matchGroups[effect.captureGroup];
 
         if (!group) {
           return [];
         }
 
         const lineIsInSelection = rangesOverlapLines(group.range, selection);
-
         let replacementText: string | undefined;
 
         if (!lineIsInSelection && effect.inlineReplacement != null) {
-          hideRanges.push(group.range);
-
+          // An inline replacement is defined, and the cursor is not on this match
+          // currently. Show the replacement instead.
           replacementText = replaceMatches(
             effect.inlineReplacement,
             matchGroups
           );
+
+          // Hide the original text, showing only the replacement.
+          hideRanges.push(group.range);
         }
 
         // Replace empty strings with a zero-width space so that the text
@@ -73,7 +86,8 @@ export function updateDecoration(
           renderOptions: replacementText
             ? {
                 before: {
-                  // TODO: Put in the config options ability to style this independently
+                  // TODO: Put in the config options ability to style this independently.
+                  // TODO: Allow users to define a "before"? Or not? How to mix with this approach? Maybe cannot.
                   ...effect.style,
                   contentText: replacementText,
                   fontStyle: "normal", // TODO

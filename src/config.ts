@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import type { PartialDeep } from "type-fest";
+import type { PartialDeep, ReadonlyDeep } from "type-fest";
 import { orderBy } from "lodash";
 import { decorationTypes } from "./util/documentUtils";
 
@@ -10,10 +10,13 @@ interface Config {
 }
 
 // TODO: show warning if there's an error with a rule
-type ConfigInput = PartialDeep<Config, { recurseIntoArrays: true }>;
+type ConfigInput = ReadonlyDeep<
+  PartialDeep<Config, { recurseIntoArrays: true }>
+>;
 
-export interface Rule {
+export type Rule = ReadonlyDeep<{
   regex: string;
+  // TODO: All less nested?
   regexFlags: {
     // TODO: string OR object here?
     raw: string;
@@ -26,19 +29,22 @@ export interface Rule {
   };
   languages: string[];
   // TODO: This does not feel nailed down yet.
-  tree?: { group: string; label: string; link?: string };
-  effects: {
-    captureGroup: number;
-    link?: string;
-    inlineReplacement?: string;
-    hoverMessage?: string;
-    style?: vscode.ThemableDecorationRenderOptions;
-    /**
-     * Generated on init - not from config.
-     */
-    decoration: vscode.TextEditorDecorationType;
-  }[];
-}
+  // TODO: All less nested?
+  tree?: { group: string; label: string };
+  effects: RuleEffect[];
+}>;
+
+type RuleEffect = ReadonlyDeep<{
+  captureGroup: number;
+  link?: string;
+  inlineReplacement?: string;
+  hoverMessage?: string;
+  style?: vscode.ThemableDecorationRenderOptions;
+  /**
+   * Generated on init - not from config.
+   */
+  decoration: vscode.TextEditorDecorationType;
+}>;
 
 export const EXTENSION_NAME = "regexraven";
 
@@ -53,7 +59,7 @@ export function getConfig(): Config {
   // As a human, the intuitive behavior is that rules that apply later in
   // the list overwrite the ones that came before, so we reverse the list.
   const reversedRules = (config.rules ? [...config.rules] : []).reverse();
-  const rules = reversedRules.flatMap((rule): Rule | [] => {
+  const rules = reversedRules.flatMap((rule): Rule | never[] => {
     let {
       regex,
       regexFlags = {},
@@ -62,22 +68,35 @@ export function getConfig(): Config {
       tree,
     } = rule ?? {};
 
+    function filterOutWithError(message: string) {
+      vscode.window.showErrorMessage(message);
+      return [];
+    }
+
     // No language defined means all languages.
     if (!languages.length) {
       languages = ["*"];
     }
 
-    if (!effects.length || !regex) {
-      return [];
+    if (!effects.length) {
+      return filterOutWithError('Rule defined with no "effects".');
     }
 
-    const decoratedEffects = effects.flatMap((effect) => {
+    if (!regex) {
+      return filterOutWithError('Rule defined with no "regex" pattern.');
+    }
+
+    const decoratedEffects = effects.flatMap((effect): RuleEffect | never[] => {
       if (!effect) {
         return [];
       }
 
-      const decoration = effect.style
-        ? vscode.window.createTextEditorDecorationType(effect.style)
+      const { style, ...rest } = effect;
+
+      const decoration = style
+        ? vscode.window.createTextEditorDecorationType(
+            style as vscode.DecorationRenderOptions
+          )
         : decorationTypes.none;
 
       if (decoration) {
@@ -85,14 +104,12 @@ export function getConfig(): Config {
       }
 
       return {
-        ...effect,
+        ...rest,
+        captureGroup: effect.captureGroup ?? 0,
         decoration,
-        captureGroup: effect?.captureGroup ?? 0,
-        style: effect.style as vscode.ThemableDecorationRenderOptions,
       };
     });
 
-    // TODO: Document
     const sortedEffects = orderBy(
       decoratedEffects,
       (effect) => effect.captureGroup,
@@ -104,7 +121,10 @@ export function getConfig(): Config {
       regexFlags: {
         raw: expandRegexFlags(regexFlags),
       },
-      tree,
+      tree: {
+        group: tree?.group ?? "Ungrouped",
+        label: tree?.label ?? "$0",
+      },
       // Remove null / undefined
       languages: languages.flatMap((language) => {
         return !language ? [] : language;
@@ -132,6 +152,7 @@ const testConfig: ConfigInput = {
   rules: [
     {
       regex: "(CORE|FS|JM|PPA|IN|LUK2)-\\d+",
+      tree: { group: "Jira links" },
       effects: [
         {
           link: "https://ticknovate.atlassian.net/browse/$0",
