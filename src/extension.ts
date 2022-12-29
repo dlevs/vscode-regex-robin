@@ -50,7 +50,7 @@ function initFromConfig() {
   return vscode.Disposable.from(
     vscode.window.onDidChangeTextEditorSelection(update),
     // TODO: Don't register this if no tree config exists
-    vscode.window.registerTreeDataProvider("regexRaven", treeProvider),
+    vscode.window.registerTreeDataProvider("regexRobin", treeProvider),
     vscode.window.registerTerminalLinkProvider(linkProvider),
     vscode.languages.registerDocumentLinkProvider(["*"], linkProvider),
     vscode.workspace.onDidChangeTextDocument(update),

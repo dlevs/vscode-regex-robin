@@ -1,6 +1,6 @@
 {
-  "name": "regex-raven",
-  "displayName": "Regex Raven",
+  "name": "regex-robin",
+  "displayName": "Regex Robin",
   "description": "Style, manipulate and create links in your editor using regular expressions.",
   "version": "1.0.2",
   "publisher": "DanLevett",
@@ -9,7 +9,7 @@
     "vscode": "^1.74.0"
   },
   "repository": {
-    "url": "https://github.com/dlevs/vscode-regex-raven"
+    "url": "https://github.com/dlevs/vscode-regex-robin"
   },
   "categories": [
     "Other"
@@ -35,9 +35,9 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "Regex Raven",
+      "title": "Regex Robin",
       "properties": {
-        "regexraven.rules": {
+        "regexrobin.rules": {
           "type": "array",
           "items": {
             "type": "object",
@@ -80,8 +80,8 @@
     "views": {
       "explorer": [
         {
-          "id": "regexRaven",
-          "name": "Regex Raven",
+          "id": "regexRobin",
+          "name": "Regex Robin",
           "contextualTitle": "Regex matches"
         }
       ]

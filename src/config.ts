@@ -46,7 +46,7 @@ type RuleEffect = ReadonlyDeep<{
   decoration: vscode.TextEditorDecorationType;
 }>;
 
-export const EXTENSION_NAME = "regexraven";
+export const EXTENSION_NAME = "regexrobin";
 
 export function getConfig(): Config {
   const ruleDecorations = new Set<vscode.TextEditorDecorationType>();
@@ -165,7 +165,7 @@ const testConfig: ConfigInput = {
             cursor: "pointer",
             backgroundColor: "rgba(255, 255, 255, 0.5)",
             gutterIconPath:
-              "/Users/daniellevett/Projects/vscode-regex-raven/assets/icon.png",
+              "/Users/daniellevett/Projects/vscode-regex-robin/assets/icon.png",
             gutterIconSize: "contain",
             fontStyle: "italic",
           },

@@ -1,6 +1,6 @@
-# Regex Raven
+# Regex Robin
 
-**Regex Raven** is a VS Code extension that automatically turns text into links based upon regex patterns.
+**Regex Robin** is a VS Code extension that automatically turns text into links based upon regex patterns.
 
 ![Animated gif showing a code comment that has a link that can be clicked](assets/usage.gif)
 
@@ -10,7 +10,7 @@ Multiple patterns can be defined in your VS Code settings. The following example
 
 ```jsonc
 {
-  "regexraven.rules": [
+  "regexrobin.rules": [
     {
       "linkPattern": "ISSUE-\\d+",
       "linkTarget": "https://myorg.atlassian.net/browse/$0"
@@ -45,7 +45,7 @@ With the example config below, the text "hello world" would have a red "hello" a
 
 ```json
 {
-  "regexraven.rules": [
+  "regexrobin.rules": [
     {
       "regex": "hello world",
       "effects": [{ "color": "red" }]
@@ -68,7 +68,7 @@ When two link rules apply to the same text, the one defined last wins.
 
 ```json
 {
-  "regexraven.rules": [
+  "regexrobin.rules": [
     // Match links like repo-name#22 to the relevant pull request
     {
       "regex": "([a-z_-]+)#(\\d+)",
