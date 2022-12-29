@@ -86,11 +86,9 @@ export function updateDecoration(
           renderOptions: replacementText
             ? {
                 before: {
-                  // TODO: Put in the config options ability to style this independently.
+                  ...effect.inlineReplacementStyle,
                   // TODO: Allow users to define a "before"? Or not? How to mix with this approach? Maybe cannot.
-                  ...effect.style,
                   contentText: replacementText,
-                  fontStyle: "normal", // TODO
                 },
               }
             : undefined,

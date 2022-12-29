@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { DocumentMatch } from "./util/documentUtils";
 import { groupBy, sortBy } from "lodash";
+import { DocumentMatch } from "./util/documentUtils";
 import { replaceMatches } from "./util/stringUtils";
 
 interface Entry {

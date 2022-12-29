@@ -38,6 +38,10 @@ type RuleEffect = ReadonlyDeep<{
   captureGroup: number;
   link?: string;
   inlineReplacement?: string;
+  inlineReplacementStyle?: Omit<
+    vscode.ThemableDecorationAttachmentRenderOptions,
+    "contentText"
+  >;
   hoverMessage?: string;
   style?: vscode.ThemableDecorationRenderOptions;
   /**
@@ -99,9 +103,7 @@ export function getConfig(): Config {
           )
         : decorationTypes.none;
 
-      if (decoration) {
-        ruleDecorations.add(decoration);
-      }
+      ruleDecorations.add(decoration);
 
       return {
         ...rest,
@@ -172,6 +174,21 @@ const testConfig: ConfigInput = {
           hoverMessage: "Jira ticket **$0**",
 
           // inlineReplacement: "$0",
+        },
+      ],
+    },
+    {
+      regex: 'class="(.*?)"',
+      tree: { group: "CSS", label: "$1" },
+      // TODO: Rename. Not "effects". Maybe "groups"... think. And why can this not be empty? Should be that this / tree can be toggled independently
+      effects: [
+        {
+          captureGroup: 1,
+          // TODO:
+          inlineReplacement: "•••",
+          inlineReplacementStyle: {
+            color: "#666",
+          },
         },
       ],
     },
