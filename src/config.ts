@@ -1,25 +1,25 @@
 import * as vscode from "vscode";
-import type { PartialDeep, ReadonlyDeep } from "type-fest";
+import type { PartialDeep } from "type-fest";
 import { orderBy } from "lodash";
 import { decorationTypes } from "./util/documentUtils";
 
-interface Config {
+// TODO: Make decorated output type different. No reason it needs to try to be the same and have these horrible types
+export interface Config {
   rules: Rule[];
   ruleDecorations: vscode.TextEditorDecorationType[];
   dispose: () => void;
 }
 
 // TODO: show warning if there's an error with a rule
-type ConfigInput = ReadonlyDeep<
-  PartialDeep<Config, { recurseIntoArrays: true }>
->;
+type ConfigInput = PartialDeep<Config, { recurseIntoArrays: true }>;
 
-export type Rule = ReadonlyDeep<{
+export type Rule = {
   regex: string;
   // TODO: All less nested?
   regexFlags: {
     // TODO: string OR object here?
     raw: string;
+    /** TODO: Test comment */
     global?: boolean;
     caseInsensitive?: boolean;
     multiline?: boolean;
@@ -32,9 +32,9 @@ export type Rule = ReadonlyDeep<{
   // TODO: All less nested?
   tree?: { group: string; label: string };
   effects: RuleEffect[];
-}>;
+};
 
-type RuleEffect = ReadonlyDeep<{
+type RuleEffect = {
   captureGroup: number;
   link?: string;
   inlineReplacement?: string;
@@ -48,7 +48,7 @@ type RuleEffect = ReadonlyDeep<{
    * Generated on init - not from config.
    */
   decoration: vscode.TextEditorDecorationType;
-}>;
+};
 
 export const EXTENSION_NAME = "regexrobin";
 
@@ -64,23 +64,13 @@ export function getConfig(): Config {
   // the list overwrite the ones that came before, so we reverse the list.
   const reversedRules = (config.rules ? [...config.rules] : []).reverse();
   const rules = reversedRules.flatMap((rule): Rule | never[] => {
-    let {
+    const {
       regex,
       regexFlags = {},
-      languages = [],
+      languages = ["*"],
       effects = [],
       tree,
     } = rule ?? {};
-
-    function filterOutWithError(message: string) {
-      vscode.window.showErrorMessage(message);
-      return [];
-    }
-
-    // No language defined means all languages.
-    if (!languages.length) {
-      languages = ["*"];
-    }
 
     if (!effects.length) {
       return filterOutWithError('Rule defined with no "effects".');
@@ -108,6 +98,7 @@ export function getConfig(): Config {
       return {
         ...rest,
         captureGroup: effect.captureGroup ?? 0,
+        inlineReplacementStyle: rest.inlineReplacement as any, // TODO
         decoration,
       };
     });
@@ -150,6 +141,11 @@ export function getRuleRegex(rule: Rule) {
   return new RegExp(rule.regex, rule.regexFlags.raw);
 }
 
+function filterOutWithError(message: string): never[] {
+  vscode.window.showErrorMessage(message);
+  return [];
+}
+
 const testConfig: ConfigInput = {
   rules: [
     {
@@ -177,6 +173,7 @@ const testConfig: ConfigInput = {
         },
       ],
     },
+    // TODO: Document this as a good example use case
     {
       regex: 'class="(.*?)"',
       tree: { group: "CSS", label: "$1" },

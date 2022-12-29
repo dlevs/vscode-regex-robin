@@ -1,3 +1,5 @@
+// @ts-nocheck TODO: Remove this
+
 import * as assert from "assert";
 import type * as vscode from "vscode";
 import { describe, test } from "vitest";

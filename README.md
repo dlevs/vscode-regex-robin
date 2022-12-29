@@ -60,8 +60,6 @@ With the example config below, the text "hello world" would have a red "hello" a
 
 If we reverse the order of these rules, then the entire text would be red.
 
-TODO: How do overlapping "inlineReplacement"s work?
-
 ### Links
 
 When two link rules apply to the same text, the one defined last wins.
@@ -99,11 +97,23 @@ just works like this by default. -->
 
 ## Limitations
 
-- With "Word wrap" enabled, if text would wrap onto another line, then the extra line persists even if using the "replaceWith" option to display shorter text.
+If you have "Word wrap" enabled, any extra lines created by long text being wrapped will still be visible when using the `inlineReplacement` feature to replace it with something shorter, even if the replacement fits on one line.
+
+TODO: Gif here
 
 ## The logo
 
 The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
+
+## Roadmap
+
+1. Documentation, showing example usage, nested regex, etc
+2. Reinstate tests. Get good test coverage.
+3. Add manual tests for behaviour.
+4. Add a keyboard shortcut for expanding all inline replacements
+5. Make the tree view display matches for all files in the workspace
+6. Make it work for multi-root workspaces
+7. Test and document overlapping styles (not nested, but overlapping)
 
 ## Contributing
 
@@ -111,7 +121,3 @@ The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
 2. `npm install` to install dependencies
 3. `npm run watch` to start the compiler in watch mode
 4. Open this folder in VS Code and start the debugger (`F5`).
-
-## Testing
-
-TODO: Document behaviour here, and common issues: clicking inlineReplacement not doing anything. Color precedence, nested regex, etc

@@ -1,4 +1,5 @@
 {
+  "ts-node": { "files": true },
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2019",
