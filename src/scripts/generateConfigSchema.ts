@@ -2,7 +2,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { createGenerator } from "ts-json-schema-generator";
 import deref from "deref";
-import { isPlainObject, mapKeys } from "lodash";
+import { isPlainObject } from "lodash";
 
 main();
 
@@ -15,6 +15,9 @@ main();
  *
  * Also, it allows us to reuse the built-in vscode built-in, we get all of
  * those descriptions for free.
+ *
+ * TODO: This could be extracted into another package that exposes a CLI,
+ * like `vscode-config-gen --source src/config.ts --prefix 'regexrobin`.
  */
 async function main() {
   const packageJsonPath = path.join(__dirname, "../../package.json");
@@ -38,6 +41,8 @@ async function main() {
     type: "object",
     properties: {
       "regexrobin.rules": {
+        markdownDescription:
+          "An array of regex patterns, and the rules to apply to them.",
         type: "array",
         items: dereferencedSchema.definitions?.RuleInput,
       },
