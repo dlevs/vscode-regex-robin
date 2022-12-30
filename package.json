@@ -67,7 +67,6 @@
       "type": "object",
       "properties": {
         "regexrobin.rules": {
-          "markdownDescription": "An array of regex patterns, and the rules to apply to them.",
           "type": "array",
           "items": {
             "type": "object",
@@ -1501,7 +1500,8 @@
               "regex"
             ],
             "additionalProperties": false
-          }
+          },
+          "markdownDescription": "An array of regex patterns, and the rules to apply to them."
         }
       }
     },

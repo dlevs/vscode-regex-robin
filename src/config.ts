@@ -7,14 +7,23 @@ import { decorationTypes } from "./util/documentUtils";
 // TODO: No need for external library? - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
 
 /**
- * Config, as defined by the user in their settings.
+ * The config schema, as VSCode expects it to be defined in package.json.
  *
- * A script automatically generates the schema for this from the TypeScript types
- * in this file, injecting them into the package.json file for documentation /
- * intellisense purposes.
+ * A script automatically generates the schema and inserts it into package.json,
+ * so we get all of the types and JSDoc documentation for free.
+ */
+export type VSCodeConfigForSchemaGeneration = {
+  [P in keyof ConfigInput as `regexrobin.${P}`]?: ConfigInput[P];
+};
+
+/**
+ * Config, as defined by the user in their settings.
  */
 interface ConfigInput {
-  rules: RuleInput[];
+  /**
+   * An array of regex patterns, and the rules to apply to them.
+   */
+  rules?: RuleInput[];
 }
 
 export interface RuleInput {

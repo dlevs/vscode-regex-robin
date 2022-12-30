@@ -6,6 +6,8 @@ import { isPlainObject } from "lodash";
 
 main();
 
+const SCHEMA_TYPE_NAME = "VSCodeConfigForSchemaGeneration";
+
 /**
  * Generate the config schema from the TypeScript types, and add it to the
  * package.json file.
@@ -17,7 +19,7 @@ main();
  * those descriptions for free.
  *
  * TODO: This could be extracted into another package that exposes a CLI,
- * like `vscode-config-gen --source src/config.ts --prefix 'regexrobin`.
+ * like `vscode-config-gen --source src/config.ts.
  */
 async function main() {
   const packageJsonPath = path.join(__dirname, "../../package.json");
@@ -26,9 +28,9 @@ async function main() {
   const schema = createGenerator({
     path: path.join(__dirname, "../config.ts"),
     tsconfig: path.join(__dirname, "../../tsconfig.json"),
-    type: "RuleInput",
+    type: SCHEMA_TYPE_NAME,
     skipTypeCheck: true,
-  }).createSchema("RuleInput");
+  }).createSchema(SCHEMA_TYPE_NAME);
 
   // Remove version, since `deref` throws an error because it does not like the
   // version outputted by `ts-json-schema-generator`.
@@ -37,16 +39,9 @@ async function main() {
   const dereferencedSchema = deref()(schema);
 
   packageJson.contributes.configuration = replaceDescriptionsWithMarkdown({
-    title: "Regex Robin",
+    title: packageJson.contributes.configuration.title,
     type: "object",
-    properties: {
-      "regexrobin.rules": {
-        markdownDescription:
-          "An array of regex patterns, and the rules to apply to them.",
-        type: "array",
-        items: dereferencedSchema.definitions?.RuleInput,
-      },
-    },
+    properties: dereferencedSchema.definitions[SCHEMA_TYPE_NAME].properties,
   });
 
   await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
