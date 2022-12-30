@@ -116,12 +116,6 @@ interface RegexFlagsInput {
    * @default false
    */
   unicode?: boolean;
-  /**
-   * Whether or not the search is sticky.
-   *
-   * @default false
-   */
-  sticky?: boolean;
 }
 
 interface TreeParams {
@@ -291,7 +285,6 @@ function processRegexFlags(flags: RuleInput["regexFlags"] = {}) {
   if (flags.multiline) output += "m";
   if (flags.dotAll) output += "s";
   if (flags.unicode) output += "u";
-  if (flags.sticky) output += "y";
 
   return output;
 }

@@ -107,11 +107,6 @@
                         "type": "boolean",
                         "markdownDescription": "Treat the string being matched as a sequence of Unicode code points.",
                         "default": false
-                      },
-                      "sticky": {
-                        "type": "boolean",
-                        "markdownDescription": "Whether or not the search is sticky.",
-                        "default": false
                       }
                     },
                     "additionalProperties": false,
