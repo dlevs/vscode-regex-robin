@@ -1,7 +1,7 @@
 // TODO: Rename files in this project
 import * as vscode from "vscode";
 import execWithIndices, { RegExpExecArray } from "regexp-match-indices";
-import { getRuleRegex, Rule } from "../config";
+import { Rule } from "../config";
 
 /**
  * A subset of `vscode.Document`, which can be used more easily for
@@ -53,7 +53,7 @@ export function getDocumentMatches(
     })
     .flatMap((rule) => {
       const text = document.getText();
-      const regex = getRuleRegex(rule);
+      const regex = rule.getRegex();
       const matches: ({
         match: string;
         start: number;

@@ -6,7 +6,7 @@ export function groupByMap<Key, Item>(
   collection: Iterable<Item>,
   getKey: (item: Item) => Key
 ) {
-  let grouped = new Map<Key, Item[]>();
+  const grouped = new Map<Key, Item[]>();
 
   for (const item of collection) {
     const key = getKey(item);

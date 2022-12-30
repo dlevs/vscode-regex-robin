@@ -56,7 +56,7 @@ export class LinkProvider
     transform: (params: { range: vscode.Range; target: vscode.Uri }) => T
   ) {
     return matches.flatMap(({ matchGroups, rule }) => {
-      return rule.effects.flatMap((effect) => {
+      return rule.editor.flatMap((effect) => {
         const group = matchGroups[effect.captureGroup];
 
         if (!effect.link || !group) {

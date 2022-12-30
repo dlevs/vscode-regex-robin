@@ -32,7 +32,7 @@ export function updateDecoration(
 
   // Group matches by decoration
   const allEffects = matches.flatMap(({ rule, matchGroups }) => {
-    return rule.effects.map((effect) => {
+    return rule.editor.map((effect) => {
       return { effect, matchGroups };
     });
   });
@@ -54,26 +54,26 @@ export function updateDecoration(
           return [];
         }
 
-        const lineIsInSelection = rangesOverlapLines(group.range, selection);
-        let replacementText: string | undefined;
+        let inlineReplacementText = effect.inlineReplacement?.contentText;
 
-        if (!lineIsInSelection && effect.inlineReplacement != null) {
-          // An inline replacement is defined, and the cursor is not on this match
-          // currently. Show the replacement instead.
-          replacementText = replaceMatches(
-            effect.inlineReplacement,
-            matchGroups
+        if (inlineReplacementText != null) {
+          const showInlineReplacement = !rangesOverlapLines(
+            group.range,
+            selection
           );
+          if (showInlineReplacement) {
+            // An inline replacement is defined, and the cursor is not on this match
+            // currently. Show the replacement instead.
+            inlineReplacementText = replaceMatches(
+              inlineReplacementText,
+              matchGroups
+            );
 
-          // Hide the original text, showing only the replacement.
-          hideRanges.push(group.range);
-        }
-
-        // Replace empty strings with a zero-width space so that the text
-        // gets hidden if user configures it. `""` by itself does not hide
-        // the original text.
-        if (replacementText === "") {
-          replacementText = "\u200B";
+            // Hide the original text, showing only the replacement.
+            hideRanges.push(group.range);
+          } else {
+            inlineReplacementText = undefined;
+          }
         }
 
         const hoverMessage =
@@ -83,15 +83,15 @@ export function updateDecoration(
         return {
           range: group.range,
           hoverMessage,
-          renderOptions: replacementText
-            ? {
-                before: {
-                  ...effect.inlineReplacementStyle,
-                  // TODO: Allow users to define a "before"? Or not? How to mix with this approach? Maybe cannot.
-                  contentText: replacementText,
-                },
-              }
-            : undefined,
+          renderOptions:
+            inlineReplacementText != null
+              ? {
+                  before: {
+                    ...effect.inlineReplacement,
+                    contentText: inlineReplacementText,
+                  },
+                }
+              : undefined,
         };
       }
     );

@@ -2,6 +2,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { createGenerator } from "ts-json-schema-generator";
 import deref from "deref";
+import { isPlainObject, mapKeys } from "lodash";
 
 main();
 
@@ -22,8 +23,9 @@ async function main() {
   const schema = createGenerator({
     path: path.join(__dirname, "../config.ts"),
     tsconfig: path.join(__dirname, "../../tsconfig.json"),
-    type: "Rule",
-  }).createSchema("Rule");
+    type: "RuleInput",
+    skipTypeCheck: true,
+  }).createSchema("RuleInput");
 
   // Remove version, since `deref` throws an error because it does not like the
   // version outputted by `ts-json-schema-generator`.
@@ -31,17 +33,41 @@ async function main() {
 
   const dereferencedSchema = deref()(schema);
 
-  packageJson.contributes.configuration = {
+  packageJson.contributes.configuration = replaceDescriptionsWithMarkdown({
     title: "Regex Robin",
     type: "object",
-    // TODO: Do this from root, not from "Rule"
     properties: {
       "regexrobin.rules": {
         type: "array",
-        items: dereferencedSchema.definitions?.Rule,
+        items: dereferencedSchema.definitions?.RuleInput,
       },
     },
-  };
+  });
 
   await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
+}
+
+// TODO: Test
+/**
+ * Replaces `description` with `markdownDescription` in the given object,
+ * recursively.
+ */
+function replaceDescriptionsWithMarkdown(value: unknown): unknown {
+  if (value instanceof Array) {
+    return value.map(replaceDescriptionsWithMarkdown);
+  }
+
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value as any).map(([key, value]) => {
+        if (key === "description") {
+          return ["markdownDescription", value];
+        }
+
+        return [key, replaceDescriptionsWithMarkdown(value)];
+      })
+    );
+  }
+
+  return value;
 }

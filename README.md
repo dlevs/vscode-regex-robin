@@ -48,11 +48,11 @@ With the example config below, the text "hello world" would have a red "hello" a
   "regexrobin.rules": [
     {
       "regex": "hello world",
-      "effects": [{ "color": "red" }]
+      "editor": [{ "color": "red" }]
     },
     {
       "regex": "world",
-      "effects": [{ "color": "blue" }]
+      "editor": [{ "color": "blue" }]
     }
   ]
 }
@@ -71,14 +71,14 @@ When two link rules apply to the same text, the one defined last wins.
     {
       "regex": "([a-z_-]+)#(\\d+)",
       "regexFlags": { "caseInsensitive": true },
-      "effects": [{ "link": "https://github.com/myorg/$1/pull/$2" }]
+      "editor": [{ "link": "https://github.com/myorg/$1/pull/$2" }]
     },
     // Match links like special-case#22 to the relevant pull request,
     // which is in a different github organisation, and has a long,
     // inconvenient name.
     {
       "regex": "special-case#(\\d+)",
-      "effects": [
+      "editor": [
         {
           "link": "https://github.com/someorg/really-long-inconvenient-name/pull/$1"
         }
