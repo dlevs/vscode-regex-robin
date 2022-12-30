@@ -44,7 +44,9 @@ async function main() {
     properties: dereferencedSchema.definitions[SCHEMA_TYPE_NAME].properties,
   });
 
-  await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
+  const packageJsonNewContent = JSON.stringify(packageJson, null, 2) + "\n";
+
+  await fs.writeFile(packageJsonPath, packageJsonNewContent);
 }
 
 // TODO: Test

@@ -109,16 +109,6 @@ export function textToMinimalDocument(
   text: string,
   languageId: string
 ): MinimalTextDocument {
-  if (text.includes("\n")) {
-    // This function is only currently for passing lines in the terminal
-    // to the same functions used to handle documents. Those are only
-    // 1 line.
-    //
-    // If this function is ever used for more than that, then we should
-    // see if there is a better approach, as it's a bit jank.
-    throw new Error("Text not expected contain newlines");
-  }
-
   return {
     getText() {
       return text;
