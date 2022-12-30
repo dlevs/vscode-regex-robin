@@ -27,14 +27,17 @@ export type DocumentMatch = {
    * They differ from `RegExpExecArray` in that they include ranges for
    * where the text was found.
    */
-  matchGroups: DocumentMatchGroup[];
+  matchGroups: [
+    entireMatch: DocumentMatchGroup,
+    ...captureGroups: (DocumentMatchGroup | null)[]
+  ];
   documentUri?: vscode.Uri;
 };
 
 type DocumentMatchGroup = {
   match: string;
   range: vscode.Range;
-} | null;
+};
 
 /**
  * Get all matches in a document for a rule's regex pattern.
@@ -58,30 +61,32 @@ export function getDocumentMatches(
         return Array.from(text.matchAll(regex)).map((match): DocumentMatch => {
           const { indices = [] } = match;
 
-          const matchGroups = match.map((group, i): DocumentMatchGroup => {
-            const matchIndices = indices[i];
+          const matchGroups = match.map(
+            (group, i): DocumentMatchGroup | null => {
+              const matchIndices = indices[i];
 
-            if (group == null || matchIndices == null) {
-              return null;
+              if (group == null || matchIndices == null) {
+                return null;
+              }
+
+              const [start, end] = matchIndices;
+
+              if (group == null) {
+                return null;
+              }
+
+              return {
+                match: group,
+                range: new vscode.Range(
+                  document.positionAt(start),
+                  document.positionAt(end)
+                ),
+              };
             }
-
-            const [start, end] = matchIndices;
-
-            if (group == null) {
-              return null;
-            }
-
-            return {
-              match: group,
-              range: new vscode.Range(
-                document.positionAt(start),
-                document.positionAt(end)
-              ),
-            };
-          });
+          );
 
           return {
-            matchGroups,
+            matchGroups: matchGroups as DocumentMatch["matchGroups"],
             rule,
             documentUri: document.uri,
           };

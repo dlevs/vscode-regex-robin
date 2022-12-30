@@ -84,7 +84,7 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
         label: replaceMatches(rule.tree.label, matchGroups).trim(),
         target: documentUri && {
           uri: documentUri,
-          range: matchGroups[0]!.range,
+          range: matchGroups[0].range,
         },
         children: [],
       };
@@ -92,10 +92,18 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
     const treeItemsByGroup = groupBy(treeItems, (item) => item.group);
     const grouped: Entry[] = Object.values(treeItemsByGroup).map(
       (children): Entry => {
+        const [firstChild] = children;
         const sortedChildren = sortBy(children, (child) => child.label);
 
+        // Keep TypeScript happy
+        if (!firstChild) {
+          throw new Error(
+            "Expected at least one child in array grouped by child attributes."
+          );
+        }
+
         return {
-          label: `${children[0]!.group} (${children.length})`,
+          label: `${firstChild.group} (${children.length})`,
           children: sortedChildren,
         };
       }

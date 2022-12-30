@@ -2,6 +2,7 @@
  * This module has no type definitions.
  */
 declare module "deref" {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type Deref = (schema: unknown) => any;
   function createDeref(): Deref;
   export = createDeref;
