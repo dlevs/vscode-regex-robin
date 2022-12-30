@@ -21,8 +21,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "lodash": "^4.17.21",
-    "regexp-match-indices": "^1.0.2"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",
@@ -83,11 +82,6 @@
                   {
                     "type": "object",
                     "properties": {
-                      "global": {
-                        "type": "boolean",
-                        "markdownDescription": "Find all matches rather than stopping after the first match.",
-                        "default": true
-                      },
                       "ignoreCase": {
                         "type": "boolean",
                         "markdownDescription": "When matching, casing differences are ignored.",
@@ -113,8 +107,7 @@
                     "markdownDescription": "Flags to apply to a regex pattern.\n\nDocumentation taken from [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp)."
                   }
                 ],
-                "markdownDescription": "Flags to apply to the regex pattern.\n\nIf you specify a string value, note that you will only receive 1 match maximum unless you use the `g` flag.",
-                "default": "g"
+                "markdownDescription": "Flags to apply to the regex pattern."
               },
               "languages": {
                 "type": "array",

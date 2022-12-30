@@ -33,11 +33,6 @@ export interface RuleInput {
   regex: string;
   /**
    * Flags to apply to the regex pattern.
-   *
-   * If you specify a string value, note that you will only receive 1 match maximum
-   * unless you use the `g` flag.
-   *
-   * @default "g"
    */
   regexFlags?: string | RegexFlagsInput;
   /**
@@ -84,12 +79,6 @@ export interface RuleInput {
  * Documentation taken from [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp).
  */
 interface RegexFlagsInput {
-  /**
-   * Find all matches rather than stopping after the first match.
-   *
-   * @default true
-   */
-  global?: boolean;
   /**
    * When matching, casing differences are ignored.
    *
@@ -274,17 +263,23 @@ export function getConfig(): Config {
 
 // TODO: Test
 function processRegexFlags(flags: RuleInput["regexFlags"] = {}) {
-  if (typeof flags === "string") {
-    return flags;
-  }
-
   let output = "";
 
-  if (flags.global || flags.global == null) output += "g";
-  if (flags.ignoreCase) output += "i";
-  if (flags.multiline) output += "m";
-  if (flags.dotAll) output += "s";
-  if (flags.unicode) output += "u";
+  if (typeof flags === "string") {
+    output = flags;
+  } else {
+    if (flags.ignoreCase) output += "i";
+    if (flags.multiline) output += "m";
+    if (flags.dotAll) output += "s";
+    if (flags.unicode) output += "u";
+  }
+
+  // The "d" flag is needed to track the indices of matched capture groups
+  // for styling them separately.
+  if (!output.includes("d")) output += "d";
+
+  // The "g" flag is needed to call `String.prototype.matchAll()`.
+  if (!output.includes("g")) output += "g";
 
   return output;
 }
@@ -573,7 +568,7 @@ const testConfig: ConfigInput = {
     // TODO: Document overlapping rules / rule precedence
     {
       regex: "https?:\\/\\/([^\\/\\s)]+)(\\/[^\\s)]*)?",
-      regexFlags: { ignoreCase: true, global: true, multiline: true },
+      regexFlags: { ignoreCase: true, multiline: true },
       editor: [
         {
           color: "white",

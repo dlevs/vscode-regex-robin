@@ -1,6 +1,5 @@
 // TODO: Rename files in this project
 import * as vscode from "vscode";
-import execWithIndices, { RegExpExecArray } from "regexp-match-indices";
 import { Rule } from "../config";
 
 /**
@@ -52,54 +51,47 @@ export function getDocumentMatches(
       );
     })
     .flatMap((rule) => {
-      const text = document.getText();
-      const regex = rule.getRegex();
-      const matches: ({
-        match: string;
-        start: number;
-        end: number;
-      } | null)[][] = [];
+      try {
+        const text = document.getText();
+        const regex = rule.getRegex();
 
-      let match: RegExpExecArray | null;
-      while ((match = execWithIndices(regex, text))) {
-        const { indices } = match;
+        return Array.from(text.matchAll(regex)).map((match): DocumentMatch => {
+          const { indices = [] } = match;
 
-        const groups = match.map((match, i) => {
-          const matchIndices = indices[i];
+          const matchGroups = match.map((group, i): DocumentMatchGroup => {
+            const matchIndices = indices[i];
 
-          if (match == null || matchIndices == null) {
-            return null;
-          }
+            if (group == null || matchIndices == null) {
+              return null;
+            }
 
-          const [start, end] = matchIndices;
+            const [start, end] = matchIndices;
 
-          return { match, start, end };
-        });
+            if (group == null) {
+              return null;
+            }
 
-        matches.push(groups);
-      }
-
-      return matches.map((match): DocumentMatch => {
-        const matchGroups = match.map((matchGroup) => {
-          if (matchGroup == null) {
-            return null;
-          }
+            return {
+              match: group,
+              range: new vscode.Range(
+                document.positionAt(start),
+                document.positionAt(end)
+              ),
+            };
+          });
 
           return {
-            match: matchGroup.match,
-            range: new vscode.Range(
-              document.positionAt(matchGroup.start),
-              document.positionAt(matchGroup.end)
-            ),
+            matchGroups,
+            rule,
+            documentUri: document.uri,
           };
         });
-
-        return {
-          matchGroups,
-          rule,
-          documentUri: document.uri,
-        };
-      });
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          `Failed to execute regex.\n\n${(err as Error).message}`
+        );
+        throw err;
+      }
     });
 }
 

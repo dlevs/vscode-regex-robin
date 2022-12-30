@@ -70,7 +70,7 @@ When two link rules apply to the same text, the one defined last wins.
     // Match links like repo-name#22 to the relevant pull request
     {
       "regex": "([a-z_-]+)#(\\d+)",
-      "regexFlags": { "caseInsensitive": true },
+      "regexFlags": { "ignoreCase": true },
       "editor": [{ "link": "https://github.com/myorg/$1/pull/$2" }]
     },
     // Match links like special-case#22 to the relevant pull request,

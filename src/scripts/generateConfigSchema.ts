@@ -1,8 +1,8 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createGenerator } from "ts-json-schema-generator";
-import deref from "deref";
 import { isPlainObject } from "lodash";
+import deref from "deref";
 
 main();
 
