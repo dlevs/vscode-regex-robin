@@ -74,26 +74,78 @@
               "regex": {
                 "anyOf": [
                   {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "markdownDescription": "A regex pattern to search for.\n\nThis may also be defined as an array of strings which are ultimately concatenated together. This is useful for breaking up long patterns and adding comments to improve readability.\n\nNested arrays may be defined to create multiple rules from a single rule definition.",
+                    "examples": [
+                      [
+                        "hello",
+                        [
+                          "world",
+                          "bob"
+                        ],
+                        "have a good",
+                        [
+                          "day",
+                          "sandwich"
+                        ]
+                      ]
+                    ]
                   },
                   {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
+                    "type": "object",
+                    "properties": {
+                      "template": {
+                        "type": "string"
+                      },
+                      "replace": {
+                        "type": "object",
+                        "additionalProperties": {
                           "type": "string"
-                        },
-                        {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
                         }
-                      ]
-                    }
+                      }
+                    },
+                    "required": [
+                      "template",
+                      "replace"
+                    ],
+                    "additionalProperties": false
                   }
                 ],
-                "markdownDescription": "A regex pattern to search for.\n\nTODO: Document array behaviour"
+                "markdownDescription": "A regex pattern to search for.\n\nThis may also be defined as an array of strings which are ultimately concatenated together. This is useful for breaking up long patterns and adding comments to improve readability.\n\nNested arrays may be defined to create multiple rules from a single rule definition.",
+                "examples": [
+                  [
+                    "hello",
+                    [
+                      "world",
+                      "bob"
+                    ],
+                    "have a good",
+                    [
+                      "day",
+                      "sandwich"
+                    ]
+                  ]
+                ]
               },
               "regexFlags": {
                 "anyOf": [
@@ -1624,6 +1676,90 @@
             "additionalProperties": false
           },
           "markdownDescription": "An array of regex patterns, and the rules to apply to them."
+        },
+        "regexrobin.templates": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "regex": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "markdownDescription": "A regex pattern to search for.\n\nThis may also be defined as an array of strings which are ultimately concatenated together. This is useful for breaking up long patterns and adding comments to improve readability.\n\nNested arrays may be defined to create multiple rules from a single rule definition.",
+                "examples": [
+                  [
+                    "hello",
+                    [
+                      "world",
+                      "bob"
+                    ],
+                    "have a good",
+                    [
+                      "day",
+                      "sandwich"
+                    ]
+                  ]
+                ]
+              },
+              "regexFlags": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "ignoreCase": {
+                        "type": "boolean",
+                        "markdownDescription": "When matching, casing differences are ignored.",
+                        "default": false
+                      },
+                      "multiline": {
+                        "type": "boolean",
+                        "markdownDescription": "Treat beginning and end assertions (`^` and `$`) as working over multiple lines. In other words, match the beginning or end of each line (delimited by `\\n` or `\\r`), not only the very beginning or end of the whole input string.",
+                        "default": false
+                      },
+                      "dotAll": {
+                        "type": "boolean",
+                        "markdownDescription": "Allows `.` to match newlines.",
+                        "default": false
+                      },
+                      "unicode": {
+                        "type": "boolean",
+                        "markdownDescription": "Treat the string being matched as a sequence of Unicode code points.",
+                        "default": false
+                      }
+                    },
+                    "additionalProperties": false,
+                    "markdownDescription": "Flags to apply to a regex pattern.\n\nDocumentation taken from [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp)."
+                  }
+                ]
+              }
+            },
+            "required": [
+              "regex"
+            ],
+            "additionalProperties": false
+          }
         }
       }
     },

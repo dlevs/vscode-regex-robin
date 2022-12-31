@@ -20,6 +20,42 @@ interface ConfigInput {
    * An array of regex patterns, and the rules to apply to them.
    */
   rules?: RuleInput[];
+
+  templates?: Record<string, RegexTemplate>;
+}
+
+/**
+ * A regex pattern to search for.
+ *
+ * This may also be defined as an array of strings which are ultimately
+ * concatenated together. This is useful for breaking up long patterns
+ * and adding comments to improve readability.
+ *
+ * Nested arrays may be defined to create multiple rules from a single
+ * rule definition.
+ *
+ * @example
+ * [
+ *   'hello',
+ *   ['world', 'bob'],
+ *   'have a good',
+ *   ['day', 'sandwich']
+ * ]
+ *
+ * // This is equivalent to two rules, with the regex patterns:
+ * // - /hello world have a good day/
+ * // - /hello bob have a good sandwich/
+ */
+type RegexInput = string | (string | string[])[];
+
+interface RegexTemplate {
+  regex: RegexInput;
+  regexFlags?: string | RegexFlagsInput;
+}
+
+interface RegexTemplateUse {
+  template: string;
+  replace: Record<string, string>;
 }
 
 export interface RuleInput {
@@ -45,7 +81,7 @@ export interface RuleInput {
    * // - /hello world have a good day/
    * // - /hello bob have a good sandwich/
    */
-  regex: string | (string | string[])[];
+  regex: RegexInput | RegexTemplateUse;
   /**
    * Flags to apply to the regex pattern.
    */
@@ -213,7 +249,7 @@ type InlineReplacement = vscode.ThemableDecorationAttachmentRenderOptions;
 export const EXTENSION_NAME = "regexrobin";
 
 export function getConfig(): Config {
-  const { rules = [] }: ConfigInput =
+  const { rules = [], templates = {} }: ConfigInput =
     vscode.workspace.getConfiguration().get(EXTENSION_NAME) ?? {};
 
   // The first-applied style "wins" when two styles apply to the same range.
@@ -222,7 +258,7 @@ export function getConfig(): Config {
   const reversedRules = [...rules].reverse();
 
   const rulesOutput = reversedRules.flatMap((rule): Rule[] => {
-    const { regex, regexFlags = {}, languages = ["*"], editor = [] } = rule;
+    const { regex, regexFlags, languages = ["*"], editor = [] } = rule;
 
     if (!editor.length) {
       return filterOutWithError('Rule defined with no "effects".');
@@ -232,57 +268,27 @@ export function getConfig(): Config {
       return filterOutWithError('Rule defined with no "regex" pattern.');
     }
 
-    const expandedRegexFlags = processRegexFlags(regexFlags);
-
-    let regexPatterns: string[];
-
-    if (typeof regex === "string") {
-      regexPatterns = [regex];
-    } else {
-      const lengths = new Set<number>();
-      for (const part of regex) {
-        if (part instanceof Array) {
-          lengths.add(part.length);
-        }
+    return processRegex(regex, regexFlags, templates).map(
+      ({ regex, flags }) => {
+        return {
+          /**
+           * Get the regex for this rule.
+           *
+           * This is a function, since regexes are stateful and remember
+           * the last match from `.exec()`.
+           */
+          getRegex() {
+            return new RegExp(regex, flags);
+          },
+          tree: rule.tree && {
+            group: rule.tree.group ?? "Ungrouped",
+            label: rule.tree.label ?? "$0",
+          },
+          languages,
+          editor: processEditorEffects(editor),
+        };
       }
-
-      if (lengths.size > 1) {
-        return filterOutWithError("Regex array has inconsistent lengths.");
-      }
-
-      const length = Array.from(lengths.values())[0] ?? 1;
-      regexPatterns = Array.from({ length }).map((_, i) => {
-        return regex
-          .map((part) => {
-            if (part instanceof Array) {
-              return part[i];
-            } else {
-              return part;
-            }
-          })
-          .join("");
-      });
-    }
-
-    return regexPatterns.map((regex) => {
-      return {
-        /**
-         * Get the regex for this rule.
-         *
-         * This is a function, since regexes are stateful and remember
-         * the last match from `.exec()`.
-         */
-        getRegex() {
-          return new RegExp(regex, expandedRegexFlags);
-        },
-        tree: rule.tree && {
-          group: rule.tree.group ?? "Ungrouped",
-          label: rule.tree.label ?? "$0",
-        },
-        languages,
-        editor: processEditorEffects(editor),
-      };
-    });
+    );
   });
 
   const ruleDecorations = new Set<vscode.TextEditorDecorationType>();
@@ -301,6 +307,77 @@ export function getConfig(): Config {
       }
     },
   };
+}
+
+// TODO: Test
+function processRegex(
+  regex: RuleInput["regex"],
+  regexFlags: RuleInput["regexFlags"],
+  templates: Record<string, RegexTemplate>
+): {
+  regex: string;
+  flags: string;
+}[] {
+  if (typeof regex !== "string" && "template" in regex) {
+    const template = templates[regex.template];
+
+    if (!template) {
+      return filterOutWithError(
+        `Regex template "${regex.template}" is not defined.`
+      );
+    }
+
+    let regexPatterns = compileArrayRegex(template.regex);
+
+    for (const [key, value] of Object.entries(regex.replace)) {
+      regexPatterns = regexPatterns.map((pattern) => {
+        return pattern.replace(new RegExp(key, "g"), value);
+      });
+    }
+    const flags = processRegexFlags(regexFlags ?? template.regexFlags);
+
+    return regexPatterns.map((pattern) => {
+      return { regex: pattern, flags };
+    });
+  } else {
+    const regexPatterns = compileArrayRegex(regex);
+    const flags = processRegexFlags(regexFlags);
+
+    return regexPatterns.map((pattern) => {
+      return { regex: pattern, flags };
+    });
+  }
+}
+
+// TODO: Test
+function compileArrayRegex(regex: RegexInput): string[] {
+  if (typeof regex === "string") {
+    return [regex];
+  }
+
+  const lengths = new Set<number>();
+  for (const part of regex) {
+    if (part instanceof Array) {
+      lengths.add(part.length);
+    }
+  }
+
+  if (lengths.size > 1) {
+    return filterOutWithError("Regex array has inconsistent lengths.");
+  }
+
+  const length = Array.from(lengths.values())[0] ?? 1;
+  return Array.from({ length }).map((_, i) => {
+    return regex
+      .map((part) => {
+        if (part instanceof Array) {
+          return part[i];
+        } else {
+          return part;
+        }
+      })
+      .join("");
+  });
 }
 
 export function processRegexFlags(flags: RuleInput["regexFlags"] = {}) {
