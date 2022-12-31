@@ -39,7 +39,7 @@ More examples are documented in the [example configuration](./test/extension-tes
 
 ### Rule precedence
 
-### Styles
+#### Styles
 
 Styles are applied in the order they are defined. Styles can overlap.
 
@@ -62,7 +62,7 @@ With the example config below, the text "hello world" would have a red "hello" a
 
 If we reverse the order of these rules, then the entire text would be red.
 
-### Links
+#### Links
 
 When two link rules apply to the same text, the one defined last wins.
 
@@ -99,7 +99,7 @@ just works like this by default. -->
 
 ## Limitations
 
-- If you have "Word wrap" enabled, any extra lines created by long text being wrapped will still be visible when using the `inlineReplacement` feature to replace it with something shorter, even if the replacement fits on one line.
+If you have "Word wrap" enabled, any extra lines created by long text being wrapped will still be visible when using the `inlineReplacement` feature to replace it with something shorter, even if the replacement fits on one line.
 
 ## The logo
 
