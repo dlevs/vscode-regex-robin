@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
+import throttle from "lodash/throttle";
 import { updateDecoration } from "./decoration";
 import { LinkProvider } from "./links";
 import { EXTENSION_NAME, getConfig } from "./config";
 import { TreeProvider } from "./tree";
 import { getDocumentMatches } from "./util/documentUtils";
-import { throttle } from "lodash";
 
 export function activate(context: vscode.ExtensionContext): void {
   let app: undefined | vscode.Disposable;

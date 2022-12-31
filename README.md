@@ -99,8 +99,6 @@ just works like this by default. -->
 
 If you have "Word wrap" enabled, any extra lines created by long text being wrapped will still be visible when using the `inlineReplacement` feature to replace it with something shorter, even if the replacement fits on one line.
 
-TODO: Gif here
-
 ## The logo
 
 The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
@@ -119,5 +117,4 @@ The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
 
 1. Clone this repository
 2. `npm install` to install dependencies
-3. `npm run watch` to start the compiler in watch mode
-4. Open this folder in VS Code and start the debugger (`F5`).
+3. Open this folder in VS Code and start the debugger (`F5`).

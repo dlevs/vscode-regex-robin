@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
-import { groupBy, sortBy } from "lodash";
+import groupBy from "lodash/groupBy";
+import sortBy from "lodash/sortBy";
 import { DocumentMatch } from "./util/documentUtils";
 import { replaceMatches } from "./util/stringUtils";
 
@@ -79,7 +80,6 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
       if (!rule.tree) return [];
 
       return {
-        // TODO: We could have a separate pane per "group", so an entire "TODO" pane. Then it's more about user's wishes, not emphasising this extension
         group: rule.tree.group,
         label: replaceMatches(rule.tree.label, matchGroups).trim(),
         target: documentUri && {

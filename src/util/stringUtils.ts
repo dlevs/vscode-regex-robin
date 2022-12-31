@@ -13,12 +13,9 @@ export function replaceMatches(
   template: string,
   matchGroups: ({ match: string } | null)[]
 ) {
-  return (
-    template
-      // TODO: Add a test for back-to-back matches
-      .replace(/(?<!\\)\$(\d)/g, (match, index) => {
-        return matchGroups[Number(index)]?.match ?? "";
-      })
-      .replace(/\\\$/g, "$")
-  );
+  return template
+    .replace(/(?<!\\)\$(\d)/g, (match, index) => {
+      return matchGroups[Number(index)]?.match ?? "";
+    })
+    .replace(/\\\$/g, "$");
 }

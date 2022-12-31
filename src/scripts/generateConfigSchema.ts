@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createGenerator } from "ts-json-schema-generator";
-import { isPlainObject } from "lodash";
+import isPlainObject from "lodash/isPlainObject";
 import deref from "deref";
 
 main();
@@ -49,12 +49,11 @@ async function main() {
   await fs.writeFile(packageJsonPath, packageJsonNewContent);
 }
 
-// TODO: Test
 /**
  * Replaces `description` with `markdownDescription` in the given object,
  * recursively.
  */
-function replaceDescriptionsWithMarkdown(value: unknown): unknown {
+export function replaceDescriptionsWithMarkdown(value: unknown): unknown {
   if (value instanceof Array) {
     return value.map(replaceDescriptionsWithMarkdown);
   }

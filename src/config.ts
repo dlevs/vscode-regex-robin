@@ -1,10 +1,7 @@
 import * as vscode from "vscode";
 import type { SetRequired } from "type-fest";
-import { orderBy } from "lodash";
+import orderBy from "lodash/orderBy";
 import { decorationTypes } from "./util/documentUtils";
-
-// TODO: show warning if there's an error with a rule - or does VSCode do that already?
-// TODO: No need for external library? - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
 
 /**
  * The config schema, as VSCode expects it to be defined in package.json.
@@ -201,10 +198,8 @@ type InlineReplacement = SetRequired<
 export const EXTENSION_NAME = "regexrobin";
 
 export function getConfig(): Config {
-  // const config: PartialDeep<Config> =
-  //   vscode.workspace.getConfiguration().get(EXTENSION_NAME) ?? {};
-  const { rules = [] } = testConfig;
-  // const config = testConfig;
+  const { rules = [] }: ConfigInput =
+    vscode.workspace.getConfiguration().get(EXTENSION_NAME) ?? {};
 
   // The first-applied style "wins" when two styles apply to the same range.
   // As a human, the intuitive behavior is that rules that apply later in
@@ -261,8 +256,7 @@ export function getConfig(): Config {
   };
 }
 
-// TODO: Test
-function processRegexFlags(flags: RuleInput["regexFlags"] = {}) {
+export function processRegexFlags(flags: RuleInput["regexFlags"] = {}) {
   let output = "";
 
   if (typeof flags === "string") {
@@ -328,275 +322,7 @@ function processEditorEffects(effects: RuleEffectInput[]) {
   return sortedEffects;
 }
 
-// TODO: Necessary?
 function filterOutWithError(message: string): never[] {
   vscode.window.showErrorMessage(message);
   return [];
 }
-
-const testConfig: ConfigInput = {
-  rules: [
-    {
-      regex: "(CORE|FS|JM|PPA|IN|LUK2)-\\d+",
-      tree: { group: "Jira links" },
-      editor: [
-        {
-          link: "https://ticknovate.atlassian.net/browse/$0",
-          color: "#66D9EF",
-          gutterIconPath:
-            "/Users/daniellevett/Projects/vscode-regex-robin/assets/icon.png",
-          gutterIconSize: "contain",
-          hoverMessage: "Jira ticket **$0**",
-          // inlineReplacement: "$0",
-        },
-      ],
-    },
-    // TODO: Document this as a good example use case
-    {
-      regex: 'class="(.*?)"',
-      // TODO: Rename. Not "effects". Maybe "groups"... think. And why can this not be empty? Should be that this / tree can be toggled independently
-      editor: [
-        {
-          captureGroup: 1,
-          inlineReplacement: { contentText: "•••", color: "#666" },
-        },
-      ],
-    },
-    {
-      regex: "#(\\d+)",
-      editor: [
-        {
-          link: "https://github.com/ticknovate/ticknovate/pull/$1",
-          color: "#66D9EF",
-          hoverMessage: "bar",
-        },
-      ],
-    },
-    // {
-    //   // comment: "Markdown link",
-    //   // TODO: Rename these params. Less focus on "links"
-    //   regex: "\\[(.+?)\\]\\((.+?)\\)",
-    //   languages: ["*"],
-    //   effects: [
-    //     {
-    //       linkTarget: "$2",
-    //       style: {color: "#66D9EF"},
-    //       inlineReplacement: "🔗 $1",
-    //       hoverMessage: "Link to $2",
-    //     },
-    //   ],
-    // },
-    // TODO: Document how this is not preferable to replacing only the 2nd part:
-    // {
-    //   // comment: "Markdown link",
-    //   // TODO: Rename these params. Less focus on "links"
-    //   regex: "\\[(.+?)\\]\\((.+?)\\)",
-    //   languages: ["*"],
-    //   effects: [
-    //     {
-    //       linkTarget: "$2",
-    //       style: {color: "#66D9EF"},
-    //       inlineReplacement: "[$1](…)",
-    //       hoverMessage: "Link to $2",
-    //     },
-    //   ],
-    // },
-    {
-      // comment: "Markdown link",
-      // TODO: This nested capture group fully breaks the concepts used in `documentMatcher`...
-      regex: "\\[(1 .+?)\\](\\((.+?)\\))",
-      // TODO: rename "effects" to "groups"? Or "regexGroups"? Make "captureGroup" _just_ "group"?
-      editor: [
-        {
-          hoverMessage: "Link to $3",
-          link: "$3",
-          color: "#66D9EF",
-        },
-        {
-          captureGroup: 2,
-          inlineReplacement: "",
-        },
-      ],
-    },
-    {
-      // comment: "Markdown link",
-      // TODO: Rename these params. Less focus on "links"
-      // TODO: This nested capture group fully breaks the concepts used in `documentMatcher`...
-      regex: "\\[(4 .+?)\\](\\()(.+?)(\\))",
-      editor: [
-        {
-          captureGroup: 1,
-          color: "yellow",
-        },
-        {
-          captureGroup: 2,
-          color: "purple",
-        },
-        {
-          captureGroup: 4,
-          color: "teal",
-        },
-        {
-          captureGroup: 3,
-          color: "orange",
-        },
-        {
-          hoverMessage: "Link to $3",
-          link: "$3",
-          color: "#66D9EF",
-          textDecoration: "none",
-        },
-      ],
-    },
-    // {
-    //   regex: "\\[(2 .+?)\\](\\((.+?)\\))",
-    //   languages: ["*"],
-    //   effects: [
-    //     {
-    //       hoverMessage: "Link to $3",
-    //       linkTarget: "$3",
-    //       style: {color: "#66D9EF"},
-    //       inlineReplacement: "$1",
-    //     },
-    //   ],
-    // },
-    {
-      // This is testing nested capture groups
-      regex: "\\[(6 .+?)\\](\\((.+?)\\))",
-      editor: [
-        {
-          captureGroup: 3,
-          color: "orange",
-        },
-        {
-          captureGroup: 2,
-          color: "purple",
-        },
-        {
-          captureGroup: 1,
-          color: "yellow",
-        },
-        {
-          hoverMessage: "Link to $3",
-          link: "$3",
-          color: "#66D9EF",
-          textDecoration: "none",
-        },
-      ],
-    },
-    {
-      regex: "\\[(2 .+?)\\](\\((.+?)\\))",
-      editor: [
-        {
-          hoverMessage: "Link to $3",
-          link: "$3",
-          color: "#66D9EF",
-          inlineReplacement: "$1",
-        },
-      ],
-    },
-    {
-      regex: "\\[(3 .+?)\\](\\((.+?)\\))",
-      editor: [
-        {
-          color: "none",
-        },
-        {
-          captureGroup: 1,
-          color: "#66D9EF",
-        },
-        {
-          captureGroup: 2,
-          inlineReplacement: "",
-        },
-      ],
-    },
-    {
-      regex: "\\[(4 .+?)\\](\\((.+?)\\))",
-      editor: [
-        {
-          color: "none",
-        },
-        {
-          captureGroup: 1,
-          color: "#66D9EF",
-        },
-        {
-          captureGroup: 2,
-          inlineReplacement: "",
-        },
-      ],
-    },
-    {
-      regex: "\\[(5 .{1,14})(.+)?\\](\\((.+?)\\))",
-      editor: [
-        {
-          color: "#66D9EF",
-        },
-        {
-          captureGroup: 2,
-          color: "#66D9EF",
-          inlineReplacement: "…",
-        },
-        {
-          captureGroup: 3,
-          inlineReplacement: "",
-        },
-      ],
-    },
-    {
-      regex: "([A-Za-z_-]+)#(\\d+)",
-      editor: [
-        {
-          link: "https://github.com/ticknovate/$1/pull/$2",
-        },
-      ],
-    },
-    {
-      regex: "(TODO:)(.{1,10})(.*)?",
-      editor: [
-        {
-          captureGroup: 3,
-          // inlineReplacement: "…",
-          inlineReplacement: "...",
-          // TODO: Remove this?
-          // inlineReplacementMaxLength: 10,
-        },
-        { color: "#ff2722" },
-      ],
-    },
-    // TODO: Document overlapping rules / rule precedence
-    {
-      regex: "https?:\\/\\/([^\\/\\s)]+)(\\/[^\\s)]*)?",
-      regexFlags: { ignoreCase: true, multiline: true },
-      editor: [
-        {
-          color: "white",
-          inlineReplacement: "$1",
-          link: "$0",
-        },
-      ],
-    },
-    // {
-    //   regex: "(TODO:)(.+)",
-    //   languages: ["*"],
-    //   effects: [
-    //     // TODO: Make the order not matter. Currently color highlghting works differnetly depending on ordering if group `0` is used
-    //     {
-    //       captureGroup: 2,
-    //       style: {color: "#ff2722"},
-    //       inlineReplacement: "$2",
-    //       inlineReplacementMaxLength: 10,
-    //       hoverMessage: "a",
-    //     },
-    //     // {
-    //     //   captureGroup: 1,
-    //     //   // TODO: Rename. This is in line with "$2", so index is correct, but is "capture group" the right term?
-    //     //   style: {color: "#ad1c14"},
-    //     //   linkTarget: "https://google.com",
-    //     //   hoverMessage: "a",
-    //     // },
-    //   ],
-    // },
-  ],
-};

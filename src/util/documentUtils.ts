@@ -1,4 +1,3 @@
-// TODO: Rename files in this project
 import * as vscode from "vscode";
 import { Rule } from "../config";
 

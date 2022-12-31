@@ -35,7 +35,6 @@ export class LinkProvider
 
   provideTerminalLinks(context: vscode.TerminalLinkContext) {
     const matches = getDocumentMatches(
-      // TODO: Document matching against "terminal"
       textToMinimalDocument(context.line, "terminal"),
       this.rules
     );

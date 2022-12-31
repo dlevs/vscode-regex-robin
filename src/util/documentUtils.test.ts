@@ -10,8 +10,6 @@ import {
 
 vi.mock("vscode");
 
-// TODO: This test comes from when this extension was copied from "vscode-pattern-links".
-// It no longer makes sense for the emphasis to be on LinkDefinitionProvider. Change.
 describe("getDocumentMatches()", () => {
   const document = textToMinimalDocument(
     "This is my text and the link is FOO-123 and it is in the middle and here is another one BAR-3 that is the end, also FOO-0. And one lowercase one: bar-72 some text. Multiline now STARTsome stuff\nnewline\nandmoreEND.",
