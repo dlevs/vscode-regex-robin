@@ -1,7 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
+import { Rule } from "../config";
+import * as vscode from "vscode";
 import {
   decorationTypes,
   getDocumentMatches,
+  rangesOverlapLines,
   textToMinimalDocument,
 } from "./documentUtils";
 
@@ -10,119 +13,94 @@ vi.mock("vscode");
 // TODO: This test comes from when this extension was copied from "vscode-pattern-links".
 // It no longer makes sense for the emphasis to be on LinkDefinitionProvider. Change.
 describe("getDocumentMatches()", () => {
-  // TODO: This test comes from when this extension was copied from "vscode-pattern-links".
-  // They need reworking now that the extension is more powerful. `getLinks` is a
-  // stopgap to make the tests work.
-  function getMatches(regex: string, regexFlags: string, link: string) {
-    const document = textToMinimalDocument(
-      "This is my text and the link is FOO-123 and it is in the middle and here is another one FOO-0 that is the end, also BAR-3. And one lowercase one: bar-72 some text. Multiline now STARTsome stuff\nnewline\nandmoreEND.",
-      "markdown"
-    );
+  const document = textToMinimalDocument(
+    "This is my text and the link is FOO-123 and it is in the middle and here is another one BAR-3 that is the end, also FOO-0. And one lowercase one: bar-72 some text. Multiline now STARTsome stuff\nnewline\nandmoreEND.",
+    "markdown"
+  );
+  const ruleDefaults = {
+    languages: ["*"],
+    editor: [{ captureGroup: 0, decoration: decorationTypes.none }],
+  } satisfies Partial<Rule>;
 
-    return getDocumentMatches(document, [
-      {
-        getRegex() {
-          return new RegExp(regex, regexFlags);
-        },
-        languages: ["*"],
-        editor: [{ captureGroup: 0, link, decoration: decorationTypes.none }],
-      },
+  test("Basic matching works", () => {
+    const rules: Rule[] = [
+      { ...ruleDefaults, getRegex: () => new RegExp("FOO-\\d+", "gd") },
+    ];
+    const matches = getDocumentMatches(document, rules);
+    expect(matches).toMatchObject([
+      { matchGroups: [{ match: "FOO-123" }], rule: rules[0] },
+      { matchGroups: [{ match: "FOO-0" }], rule: rules[0] },
     ]);
-  }
-
-  test("Matches patterns to return links", () => {
-    const links = getMatches("FOO-\\d+", "gd", "https://example.com/$0");
-    expect(links).toHaveLength(2);
-    // expect(links[0]?.target?.toString(true), "https://example.com/FOO-123");
-    // expect(links[1]?.target?.toString(true), "https://example.com/FOO-0");
   });
 
-  // TODO: Complete the tests. Throw out old format that does not work
+  test("Matching with capture groups works", () => {
+    const rules: Rule[] = [
+      { ...ruleDefaults, getRegex: () => new RegExp("FOO-(\\d+)", "gd") },
+    ];
+    expect(getDocumentMatches(document, rules)).toMatchObject([
+      { matchGroups: [{ match: "FOO-123" }, { match: "123" }] },
+      { matchGroups: [{ match: "FOO-0" }, { match: "0" }] },
+    ]);
+  });
 
-  // test("Capture groups work", () => {
-  //   const links = getMatches(
-  //     "(FOO|BAR)-(\\d+)",
-  //     "",
-  //     "https://example.com/$1/$2?foo=bar"
-  //   );
-  //   expect(links?.length, 3);
-  //   expect(
-  //     links?.[0]?.target?.toString(true),
-  //     "https://example.com/FOO/123?foo=bar"
-  //   );
-  //   expect(
-  //     links?.[2]?.target?.toString(true),
-  //     "https://example.com/BAR/3?foo=bar"
-  //   );
-  // });
+  test("Matching with multiple rules works", () => {
+    const rule1: Rule = {
+      ...ruleDefaults,
+      getRegex: () => new RegExp("FOO-(\\d+)", "gd"),
+    };
+    const rule2: Rule = {
+      ...ruleDefaults,
+      getRegex: () => new RegExp("BAR-(\\d+)", "gd"),
+    };
+    expect(getDocumentMatches(document, [rule1, rule2])).toMatchObject([
+      { matchGroups: [{ match: "FOO-123" }, { match: "123" }], rule: rule1 },
+      { matchGroups: [{ match: "FOO-0" }, { match: "0" }], rule: rule1 },
+      { matchGroups: [{ match: "BAR-3" }, { match: "3" }], rule: rule2 },
+    ]);
+  });
 
-  // test("Escape characters prevent substitution", () => {
-  //   const links = getMatches(
-  //     "(FOO|BAR)-(\\d+)",
-  //     "",
-  //     "https://example.com/\\$1/$2?foo=bar"
-  //   );
-  //   expect(links?.length, 3);
-  //   expect(
-  //     links?.[0]?.target?.toString(true),
-  //     "https://example.com/$1/123?foo=bar"
-  //   );
-  //   expect(
-  //     links?.[2]?.target?.toString(true),
-  //     "https://example.com/$1/3?foo=bar"
-  //   );
-  // });
+  test("Throws an error when the required flags are not present", () => {
+    function createTestFn(flags: string) {
+      return () => {
+        getDocumentMatches(document, [
+          {
+            ...ruleDefaults,
+            getRegex: () => new RegExp("FOO-(\\d+)", flags),
+          },
+        ]);
+      };
+    }
+    expect(createTestFn("d")).toThrowError(
+      `Regex must have the "d" and "g" flags.`
+    );
+    expect(createTestFn("g")).toThrowError(
+      `Regex must have the "d" and "g" flags.`
+    );
+    expect(createTestFn("dg")).not.toThrowError();
+  });
+});
 
-  // test("Failed substitutions result in input remaining untouched (not 'undefined' in output)", () => {
-  //   const links = getMatches(
-  //     "(FOO|BAR)-(\\d+)",
-  //     "",
-  //     "https://example.com/$1/$4"
-  //   );
-  //   expect(links?.length, 3);
-  //   expect(links?.[0]?.target?.toString(true), "https://example.com/FOO/$4");
-  // });
+test("textToMinimalDocument()", () => {
+  const document = textToMinimalDocument("This is my text", "markdown");
+  expect(document.getText()).toBe("This is my text");
+  expect(document.languageId).toBe("markdown");
+  expect(document.positionAt(10).line).toBe(0);
+  expect(document.positionAt(10).character).toBe(10);
+  expect(document.uri).toBe(undefined);
+});
 
-  // // TODO: These are less relevant now
-  // describe("Config: `rule.linkPatternFlags`", () => {
-  //   test("`g` flag cannot be overwritten", () => {
-  //     const links = getMatches(
-  //       "(FOO|BAR)-(\\d+)",
-  //       "i", // `i` here does not stop the usual `g` flag from taking effect
-  //       "https://example.com/$1/$4"
-  //     );
-  //     expect((links?.length ?? 0) > 1, true);
-  //   });
+const lines1To30 = new vscode.Range(1, 0, 30, 0);
+const lines10To20 = new vscode.Range(10, 0, 20, 0);
+const lines30To30 = new vscode.Range(30, 0, 30, 0);
+const lines35To40 = new vscode.Range(35, 0, 40, 0);
 
-  //   test("Single flags work", () => {
-  //     const links = getMatches(
-  //       "(BAR)-(\\d+)",
-  //       "i", // `i` here does not stop the usual `g` flag from taking effect
-  //       "https://example.com/$1/$2"
-  //     );
-  //     expect(links?.length, 2);
-  //     expect(links?.[0]?.target?.toString(true), "https://example.com/BAR/3");
-  //     expect(links?.[1]?.target?.toString(true), "https://example.com/bar/72");
-  //   });
+test("rangesOverlapLines()", () => {
+  expect(rangesOverlapLines(lines1To30, lines30To30)).toBe(true);
+  expect(rangesOverlapLines(lines10To20, lines1To30)).toBe(true);
+  expect(rangesOverlapLines(lines1To30, lines35To40)).toBe(false);
 
-  //   test("Multiple flags work", () => {
-  //     const testWithFlag = (flags: string) => {
-  //       return getMatches("start(.*?)end", flags, "https://example.com/$1");
-  //     };
-
-  //     // No flag
-  //     expect(testWithFlag("")?.length, 0);
-
-  //     // Individual flags (not enough on their own)
-  //     expect(testWithFlag("i")?.length, 0);
-  //     expect(testWithFlag("s")?.length, 0);
-
-  //     // Combined flags
-  //     expect(testWithFlag("is")?.length, 1);
-  //     expect(
-  //       testWithFlag("is")?.[0]?.target?.toString(true),
-  //       "https://example.com/some stuff\nnewline\nandmore"
-  //     );
-  //   });
-  // });
+  // And in reverse
+  expect(rangesOverlapLines(lines30To30, lines1To30)).toBe(true);
+  expect(rangesOverlapLines(lines1To30, lines10To20)).toBe(true);
+  expect(rangesOverlapLines(lines35To40, lines1To30)).toBe(false);
 });

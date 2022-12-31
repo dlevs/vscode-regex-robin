@@ -58,6 +58,10 @@ export function getDocumentMatches(
         const text = document.getText();
         const regex = rule.getRegex();
 
+        if (!regex.global || !regex.hasIndices) {
+          throw new Error('Regex must have the "d" and "g" flags.');
+        }
+
         return Array.from(text.matchAll(regex)).map((match): DocumentMatch => {
           const { indices = [] } = match;
 
@@ -136,15 +140,22 @@ export const decorationTypes = {
   }),
 };
 
-// TODO: Test
-// TODO: Ideally argument order would not matter.
 /**
  * Check if two ranges share at least one line.
  */
 export function rangesOverlapLines(range1: vscode.Range, range2: vscode.Range) {
   return (
-    (range1.start.line >= range2.start.line &&
-      range1.start.line <= range2.end.line) ||
-    (range1.end.line >= range2.start.line && range1.end.line <= range2.end.line)
+    rangeContainsLines(range1, range2) || rangeContainsLines(range2, range1)
+  );
+}
+
+/**
+ * Check if `outer` range contains any lines in `inner`.
+ */
+function rangeContainsLines(outer: vscode.Range, inner: vscode.Range) {
+  return (
+    (inner.start.line >= outer.start.line &&
+      inner.start.line <= outer.end.line) ||
+    (inner.end.line >= outer.start.line && inner.end.line <= outer.end.line)
   );
 }

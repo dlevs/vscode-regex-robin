@@ -15,6 +15,10 @@ declare module "deref" {
  * it's supported in Node 16, which is what VSCode uses at the time
  * of writing.
  */
+interface RegExp {
+  hasIndices: boolean;
+}
+
 interface RegExpMatchArray {
   indices?: [number, number][];
 }

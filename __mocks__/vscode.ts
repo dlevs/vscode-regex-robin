@@ -19,5 +19,21 @@ export const window = {
   },
 };
 
-export class Position {}
-export class Range {}
+export class Position {
+  constructor(public line: number, public character: number) {}
+}
+
+export class Range {
+  start: Position;
+  end: Position;
+
+  constructor(
+    startLine: number,
+    startCharacter: number,
+    endLine: number,
+    endCharacter: number
+  ) {
+    this.start = new Position(startLine, startCharacter);
+    this.end = new Position(endLine, endCharacter);
+  }
+}

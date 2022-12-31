@@ -18,7 +18,8 @@
     "build:config": "ts-node ./src/scripts/generateConfigSchema.ts",
     "watch": "tsc -watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "vitest"
+    "test": "vitest --run src",
+    "test:watch": "vitest src"
   },
   "dependencies": {
     "lodash": "^4.17.21"
