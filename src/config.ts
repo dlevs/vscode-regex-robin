@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import type { SetRequired } from "type-fest";
 import orderBy from "lodash/orderBy";
 import { decorationTypes } from "./util/documentUtils";
 
@@ -48,10 +47,10 @@ export interface RuleInput {
    *
    * ## Capture groups
    *
-   * The `captureGroup` property defines which portion of the matched text
+   * The `group` property defines which portion of the matched text
    * to apply the effect to. If omitted, it defaults to the entire match.
    *
-   * For example, `captureGroup: 2` applies to "world" in a match for the
+   * For example, `group: 2` applies to "world" in a match for the
    * regex pattern `/(hello) (world)/`, the same way you'd use "$2" in
    * JavaScripts `String.prototype.replace(RegExp, String)` method.
    *
@@ -127,7 +126,7 @@ interface RuleEffectInput extends vscode.DecorationRenderOptions {
    *
    * @default 0
    */
-  captureGroup?: number;
+  group?: number;
   /**
    * A link to open when the relevant match is clicked.
    *
@@ -177,7 +176,7 @@ interface EditorEffect extends RuleEffectInput {
    *
    * Default has been applied, so it's no longer an optional property.
    */
-  captureGroup: number;
+  group: number;
   /**
    * Inline replacement text.
    *
@@ -190,10 +189,7 @@ interface EditorEffect extends RuleEffectInput {
   decoration: vscode.TextEditorDecorationType;
 }
 
-type InlineReplacement = SetRequired<
-  vscode.ThemableDecorationAttachmentRenderOptions,
-  "contentText"
->;
+type InlineReplacement = vscode.ThemableDecorationAttachmentRenderOptions;
 
 export const EXTENSION_NAME = "regexrobin";
 
@@ -281,7 +277,7 @@ export function processRegexFlags(flags: RuleInput["regexFlags"] = {}) {
 function processEditorEffects(effects: RuleEffectInput[]) {
   const decoratedEffects = effects.flatMap((effect): EditorEffect | never[] => {
     const {
-      captureGroup = 0,
+      group = 0,
       link,
       hoverMessage,
       inlineReplacement: inlineReplacementInput,
@@ -306,7 +302,7 @@ function processEditorEffects(effects: RuleEffectInput[]) {
       link,
       hoverMessage,
       inlineReplacement,
-      captureGroup,
+      group,
       decoration: style
         ? vscode.window.createTextEditorDecorationType(style)
         : decorationTypes.none,
@@ -315,7 +311,7 @@ function processEditorEffects(effects: RuleEffectInput[]) {
 
   const sortedEffects = orderBy(
     decoratedEffects,
-    (effect) => effect.captureGroup,
+    (effect) => effect.group,
     "desc"
   );
 

@@ -1429,7 +1429,7 @@
                       },
                       "additionalProperties": false
                     },
-                    "captureGroup": {
+                    "group": {
                       "type": "number",
                       "markdownDescription": "The portion of the matched text to apply the effect to.",
                       "default": 0
@@ -1453,10 +1453,123 @@
                             "contentText": {
                               "type": "string",
                               "markdownDescription": "Defines a text content that is shown in the attachment. Either an icon or a text can be shown, but not both."
+                            },
+                            "contentIconPath": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "scheme": {
+                                      "type": "string",
+                                      "markdownDescription": "Scheme is the `http` part of `http://www.example.com/some/path?query#fragment`. The part before the first colon."
+                                    },
+                                    "authority": {
+                                      "type": "string",
+                                      "markdownDescription": "Authority is the `www.example.com` part of `http://www.example.com/some/path?query#fragment`. The part between the first double slashes and the next slash."
+                                    },
+                                    "path": {
+                                      "type": "string",
+                                      "markdownDescription": "Path is the `/some/path` part of `http://www.example.com/some/path?query#fragment`."
+                                    },
+                                    "query": {
+                                      "type": "string",
+                                      "markdownDescription": "Query is the `query` part of `http://www.example.com/some/path?query#fragment`."
+                                    },
+                                    "fragment": {
+                                      "type": "string",
+                                      "markdownDescription": "Fragment is the `fragment` part of `http://www.example.com/some/path?query#fragment`."
+                                    },
+                                    "fsPath": {
+                                      "type": "string",
+                                      "markdownDescription": "The string representing the corresponding file system path of this Uri.\n\nWill handle UNC paths and normalize windows drive letters to lower-case. Also uses the platform specific path separator.\n\n* Will *not* validate the path for invalid characters and semantics.\n* Will *not* look at the scheme of this Uri.\n* The resulting string shall *not* be used for display purposes but for disk operations, like `readFile` et al.\n\nThe *difference* to the  {@linkcode  Uri.path path } -property is the use of the platform specific path separator and the handling of UNC paths. The sample below outlines the difference: ```ts const u = URI.parse('file://server/c$/folder/file.txt') u.authority === 'server' u.path === '/shares/c$/file.txt' u.fsPath === '\\\\server\\c$\\folder\\file.txt' ```"
+                                    }
+                                  },
+                                  "required": [
+                                    "scheme",
+                                    "authority",
+                                    "path",
+                                    "query",
+                                    "fragment",
+                                    "fsPath"
+                                  ],
+                                  "additionalProperties": false,
+                                  "markdownDescription": "A universal resource identifier representing either a file on disk or another resource, like untitled resources."
+                                }
+                              ],
+                              "markdownDescription": "An **absolute path** or an URI to an image to be rendered in the attachment. Either an icon or a text can be shown, but not both."
+                            },
+                            "border": {
+                              "type": "string",
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
+                            },
+                            "borderColor": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "markdownDescription": "A reference to one of the workbench colors as defined in https://code.visualstudio.com/docs/getstarted/theme-color-reference. Using a theme color is preferred over a custom color as it gives theme authors and users the possibility to change the color."
+                                }
+                              ],
+                              "markdownDescription": "CSS styling property that will be applied to text enclosed by a decoration."
+                            },
+                            "fontStyle": {
+                              "type": "string",
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
+                            },
+                            "fontWeight": {
+                              "type": "string",
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
+                            },
+                            "textDecoration": {
+                              "type": "string",
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
+                            },
+                            "color": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "markdownDescription": "A reference to one of the workbench colors as defined in https://code.visualstudio.com/docs/getstarted/theme-color-reference. Using a theme color is preferred over a custom color as it gives theme authors and users the possibility to change the color."
+                                }
+                              ],
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
+                            },
+                            "backgroundColor": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "markdownDescription": "A reference to one of the workbench colors as defined in https://code.visualstudio.com/docs/getstarted/theme-color-reference. Using a theme color is preferred over a custom color as it gives theme authors and users the possibility to change the color."
+                                }
+                              ],
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
+                            },
+                            "margin": {
+                              "type": "string",
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
+                            },
+                            "width": {
+                              "type": "string",
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
+                            },
+                            "height": {
+                              "type": "string",
+                              "markdownDescription": "CSS styling property that will be applied to the decoration attachment."
                             }
                           },
-                          "additionalProperties": false,
-                          "markdownDescription": "Useful to flatten the type output to improve type hints shown in editors. And also to transform an interface into a type to aide with assignability."
+                          "additionalProperties": false
                         }
                       ],
                       "markdownDescription": "Text to display in the editor instead of the matched text, so long as the cursor (or current selection) is not on the line of the match.\n\nCapture group substitution is supported, e.g. \"$1\".\n\nThe substitution is defined in the \"contextText\" property."
@@ -1464,7 +1577,7 @@
                   },
                   "additionalProperties": false
                 },
-                "markdownDescription": "Effects to apply to the matched text in the text editor / terminal.\n\n## Capture groups\n\nThe `captureGroup` property defines which portion of the matched text to apply the effect to. If omitted, it defaults to the entire match.\n\nFor example, `captureGroup: 2` applies to \"world\" in a match for the regex pattern `/(hello) (world)/`, the same way you'd use \"$2\" in JavaScripts `String.prototype.replace(RegExp, String)` method.\n\nWith this, you can style different parts of the matched text independently.\n\n## Terminal links\n\nEffects in the terminal are limited to links (no styling).",
+                "markdownDescription": "Effects to apply to the matched text in the text editor / terminal.\n\n## Capture groups\n\nThe `group` property defines which portion of the matched text to apply the effect to. If omitted, it defaults to the entire match.\n\nFor example, `group: 2` applies to \"world\" in a match for the regex pattern `/(hello) (world)/`, the same way you'd use \"$2\" in JavaScripts `String.prototype.replace(RegExp, String)` method.\n\nWith this, you can style different parts of the matched text independently.\n\n## Terminal links\n\nEffects in the terminal are limited to links (no styling).",
                 "default": []
               },
               "tree": {

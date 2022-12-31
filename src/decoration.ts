@@ -48,7 +48,7 @@ export function updateDecoration(
     const relevantMatches = decorationMap.get(decoration) ?? [];
     const ranges = relevantMatches.flatMap(
       ({ matchGroups, effect }): vscode.DecorationOptions | [] => {
-        const group = matchGroups[effect.captureGroup];
+        const group = matchGroups[effect.group];
 
         if (!group) {
           return [];

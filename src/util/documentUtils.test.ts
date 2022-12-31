@@ -17,7 +17,7 @@ describe("getDocumentMatches()", () => {
   );
   const ruleDefaults = {
     languages: ["*"],
-    editor: [{ captureGroup: 0, decoration: decorationTypes.none }],
+    editor: [{ group: 0, decoration: decorationTypes.none }],
   } satisfies Partial<Rule>;
 
   test("Basic matching works", () => {
