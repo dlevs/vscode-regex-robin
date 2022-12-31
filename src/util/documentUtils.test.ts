@@ -15,10 +15,10 @@ describe("getDocumentMatches()", () => {
     "This is my text and the link is FOO-123 and it is in the middle and here is another one BAR-3 that is the end, also FOO-0. And one lowercase one: bar-72 some text. Multiline now STARTsome stuff\nnewline\nandmoreEND.",
     "markdown"
   );
-  const ruleDefaults = {
+  const ruleDefaults: Pick<Rule, "languages" | "editor"> = {
     languages: ["*"],
     editor: [{ group: 0, decoration: decorationTypes.none }],
-  } satisfies Partial<Rule>;
+  };
 
   test("Basic matching works", () => {
     const rules: Rule[] = [

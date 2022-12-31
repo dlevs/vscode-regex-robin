@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Rule } from "../config";
+import type { Rule } from "../config";
 
 /**
  * A subset of `vscode.Document`, which can be used more easily for

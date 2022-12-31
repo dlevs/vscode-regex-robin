@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { replaceDescriptionsWithMarkdown } from "./generateConfigSchema";
+import { replaceDescriptionsWithMarkdown } from "./objectUtils";
 
 test("replaceDescriptionsWithMarkdown()", () => {
   expect(

@@ -1,8 +1,8 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createGenerator } from "ts-json-schema-generator";
-import isPlainObject from "lodash/isPlainObject";
 import deref from "deref";
+import { replaceDescriptionsWithMarkdown } from "../util/objectUtils";
 
 main();
 
@@ -47,29 +47,4 @@ async function main() {
   const packageJsonNewContent = JSON.stringify(packageJson, null, 2) + "\n";
 
   await fs.writeFile(packageJsonPath, packageJsonNewContent);
-}
-
-/**
- * Replaces `description` with `markdownDescription` in the given object,
- * recursively.
- */
-export function replaceDescriptionsWithMarkdown(value: unknown): unknown {
-  if (value instanceof Array) {
-    return value.map(replaceDescriptionsWithMarkdown);
-  }
-
-  if (isPlainObject(value)) {
-    return Object.fromEntries(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Object.entries(value as any).map(([key, value]) => {
-        if (key === "description") {
-          return ["markdownDescription", value];
-        }
-
-        return [key, replaceDescriptionsWithMarkdown(value)];
-      })
-    );
-  }
-
-  return value;
 }
