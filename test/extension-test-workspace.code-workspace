@@ -1,0 +1,130 @@
+{
+  "folders": [
+    {
+      "path": ".."
+    }
+  ],
+  "settings": {
+    "regexrobin.rules": [
+      {
+        "regex": "(CORE|FS|JM|PPA|IN|LUK2)-\\d+",
+        "tree": { "group": "Jira links" },
+        "editor": [
+          {
+            "link": "https://myorg.atlassian.net/browse/$0",
+            "color": "#66D9EF",
+            "hoverMessage": "Jira ticket **$0**"
+          }
+        ]
+      },
+      {
+        "regex": "class=\"(.*?)\"",
+        "editor": [
+          {
+            "group": 1,
+            "inlineReplacement": { "contentText": "•••", "color": "#666" }
+          }
+        ]
+      },
+      // Markdown link
+      {
+        "regex": "\\[(.+?)\\](\\((.+?)\\))",
+        "editor": [
+          { "hoverMessage": "Link to $2", "link": "$2", "color": "#66D9EF" },
+          { "group": 2, "inlineReplacement": "" }
+        ]
+      },
+      {
+        "regex": "#(\\d+)(?:\\s|$)",
+        "regexFlags": { "multiline": true },
+        "editor": [
+          {
+            "link": "https://github.com/ticknovate/ticknovate/pull/$1",
+            "color": "#66D9EF"
+          }
+        ]
+      },
+      {
+        "regex": "([A-Za-z_-]+)#(\\d+)",
+        "editor": [{ "link": "https://github.com/ticknovate/$1/pull/$2" }]
+      },
+      {
+        "regex": "(NOTE):",
+        "editor": [
+          { "color": "#AE81FF" },
+          {
+            "group": 1,
+            "fontWeight": "bold",
+            "textDecoration": "underline"
+          }
+        ]
+      },
+      {
+        "regex": {
+          "template": "multi-line-match",
+          "replace": { "TEXT": "NOTE" }
+        },
+        "tree": { "group": "Notes", "label": "$1" },
+        "editor": [{ "group": 1, "color": "#AE81FF" }]
+      },
+      {
+        "regex": "(TODO):",
+        "editor": [
+          { "color": "#F92672" },
+          {
+            "group": 1,
+            "fontWeight": "bold",
+            "textDecoration": "underline"
+          }
+        ]
+      },
+      // {
+      //   "regex": "(?://|\\*|#).*?TODO:(.*(?:\n *(?://|\\*|#) *?(?:(?!TODO).)+$)*)",
+      //   "regexFlags": { "multiline": true },
+      //   "tree": { "group": "TODOs", "label": "$1" },
+      //   "editor": [{ "group": 1, "color": "#F92672" }]
+      // },
+      {
+        "regex": {
+          "template": "multi-line-match",
+          "replace": { "TEXT": "TODO" }
+        },
+        "tree": { "group": "TODOs", "label": "$1" },
+        "editor": [{ "group": 1, "color": "#F92672" }]
+      },
+      // Reset the comment from the TODO rule above...
+      {
+        "regex": "^ *(//|\\*/|\\*|#|-|\\d+\\.)[^#] *",
+        "regexFlags": { "multiline": true },
+        "editor": [{ "color": "gray" }]
+      }
+    ],
+    "regexrobin.templates": {
+      "multi-line-match": {
+        "regex": [
+          // Opening comment (first 3) / bullet point / start of line
+          ["//.*?", "\\*.*?", "#.*?", "-.*?", "^ *?"],
+
+          "TEXT:(",
+
+          /*  */ // Anything between comment and end of line
+          /*  */ ".*",
+
+          /*  */ // Try to extend the match to the next line if possible
+          /*  */ "(?:",
+          /*      */ // New line
+          /*      */ "\n *",
+          /*      */ //  New line comment
+          /*      */ ["// +?", "\\* +?", "# +?", "[^-] +?", "^ *?"],
+          /*      */ // Content on the new line up until the next "TEXT".
+          /*      */ // There _must_ be content, otherwise the match is over.
+          /*      */ "(?:(?!TEXT).)+$",
+          /*  */ ")*",
+
+          ")"
+        ],
+        "regexFlags": { "multiline": true }
+      }
+    }
+  }
+}

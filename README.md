@@ -103,18 +103,6 @@ If you have "Word wrap" enabled, any extra lines created by long text being wrap
 
 The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
 
-## Roadmap
-
-1. Documentation, showing example usage, nested regex, etc
-2. Reinstate tests. Get good test coverage.
-3. Add manual tests for behaviour.
-4. Add a keyboard shortcut for expanding all inline replacements
-5. Make the tree view display matches for all files in the workspace
-6. Make it work for multi-root workspaces
-7. Test and document overlapping styles (not nested, but overlapping)
-
 ## Contributing
 
-1. Clone this repository
-2. `npm install` to install dependencies
-3. Open this folder in VS Code and start the debugger (`F5`).
+Read the [contributing doc](CONTRIBUTING.md) for direction around setting up the extension for development and debugging.
