@@ -26,7 +26,7 @@ async function main() {
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath, "utf8"));
 
   const schema = createGenerator({
-    path: path.join(__dirname, "../config.ts"),
+    path: path.join(__dirname, "../types/config.d.ts"),
     tsconfig: path.join(__dirname, "../../tsconfig.json"),
     type: SCHEMA_TYPE_NAME,
     skipTypeCheck: true,

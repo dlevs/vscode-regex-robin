@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { Rule } from "../config";
+import type { Rule } from "../types/config";
 import * as vscode from "vscode";
 import {
   decorationTypes,

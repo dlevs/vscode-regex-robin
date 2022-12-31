@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Rule } from "./config";
+import type { Rule } from "./types/config";
 import {
   MinimalTextDocument,
   getDocumentMatches,

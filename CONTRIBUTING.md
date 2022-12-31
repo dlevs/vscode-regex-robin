@@ -6,6 +6,12 @@
 2. `npm install` to install dependencies
 3. Open this folder in VS Code and start the debugger (`F5`).
 
+## Updating the config
+
+The contributions in the package.json file are generated from the TypeScript types. Don't update them manually.
+
+Run `npm run build` to update them.
+
 ## Testing
 
 ### Unit tests

@@ -115,13 +115,15 @@
                     "type": "object",
                     "properties": {
                       "template": {
-                        "type": "string"
+                        "type": "string",
+                        "markdownDescription": "The key of the template to use, as defined in `regexrobin.templates`."
                       },
                       "replace": {
                         "type": "object",
                         "additionalProperties": {
                           "type": "string"
-                        }
+                        },
+                        "markdownDescription": "Key / value pairs to replace in the template.\n\nCapture group substitution is supported for the values, e.g. \"$1\"."
                       }
                     },
                     "required": [
@@ -1758,8 +1760,10 @@
             "required": [
               "regex"
             ],
-            "additionalProperties": false
-          }
+            "additionalProperties": false,
+            "markdownDescription": "A reusable regex pattern."
+          },
+          "markdownDescription": "A map of reusable regex patterns."
         }
       }
     },
