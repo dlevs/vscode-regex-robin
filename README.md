@@ -66,7 +66,7 @@ If we reverse the order of these rules, then the entire text would be red.
 
 When two link rules apply to the same text, the one defined last wins.
 
-```json
+```jsonc
 {
   "regexrobin.rules": [
     // Match links like repo-name#22 to the relevant pull request
