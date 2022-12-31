@@ -2,9 +2,11 @@
 
 **Regex Robin** is a VS Code extension that allows you to customize the appearance of text in your editor using regex patterns, as well as creating links and hover messages.
 
+## Configuration
+
 You can configure rules like this:
 
-```jsonc
+```json
 {
   "regexrobin.rules": [
     {
@@ -26,14 +28,14 @@ Combined with similar rules to match markdown links, and "TODO" and "NOTE" comme
 
 ![Animated gif showing a code comment that has a link that can be clicked](assets/usage.gif)
 
-In the above example, we're using:
+The above example uses:
 
 - The tree view to display the matches in the sidebar
 - The "link" feature to create clickable links for issues
 - Custom styling to highlight the matches
 - The `inlineReplacement` feature to hide the URL of the markdown link
 
-More examples are documented in the [example configuration](./test/extension-test-workspace.code-workspace).
+More examples are documented in the [example configuration](./test/extension-test-workspace.code-workspace), as well as the "templates" feature for reusing complex regex patterns.
 
 ### Rule precedence
 
