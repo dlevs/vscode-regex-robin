@@ -72,8 +72,28 @@
             "type": "object",
             "properties": {
               "regex": {
-                "type": "string",
-                "markdownDescription": "A regex pattern to search for."
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "markdownDescription": "A regex pattern to search for.\n\nTODO: Document array behaviour"
               },
               "regexFlags": {
                 "anyOf": [

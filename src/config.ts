@@ -25,8 +25,27 @@ interface ConfigInput {
 export interface RuleInput {
   /**
    * A regex pattern to search for.
+   *
+   * This may also be defined as an array of strings which are ultimately
+   * concatenated together. This is useful for breaking up long patterns
+   * and adding comments to improve readability.
+   *
+   * Nested arrays may be defined to create multiple rules from a single
+   * rule definition.
+   *
+   * @example
+   * [
+   *   'hello',
+   *   ['world', 'bob'],
+   *   'have a good',
+   *   ['day', 'sandwich']
+   * ]
+   *
+   * // This is equivalent to two rules, with the regex patterns:
+   * // - /hello world have a good day/
+   * // - /hello bob have a good sandwich/
    */
-  regex: string;
+  regex: string | (string | string[])[];
   /**
    * Flags to apply to the regex pattern.
    */
@@ -202,7 +221,7 @@ export function getConfig(): Config {
   // the list overwrite the ones that came before, so we reverse the list.
   const reversedRules = [...rules].reverse();
 
-  const rulesOutput = reversedRules.flatMap((rule): Rule | never[] => {
+  const rulesOutput = reversedRules.flatMap((rule): Rule[] => {
     const { regex, regexFlags = {}, languages = ["*"], editor = [] } = rule;
 
     if (!editor.length) {
@@ -215,23 +234,55 @@ export function getConfig(): Config {
 
     const expandedRegexFlags = processRegexFlags(regexFlags);
 
-    return {
-      /**
-       * Get the regex for this rule.
-       *
-       * This is a function, since regexes are stateful and remember
-       * the last match from `.exec()`.
-       */
-      getRegex() {
-        return new RegExp(regex, expandedRegexFlags);
-      },
-      tree: rule.tree && {
-        group: rule.tree.group ?? "Ungrouped",
-        label: rule.tree.label ?? "$0",
-      },
-      languages,
-      editor: processEditorEffects(editor),
-    };
+    let regexPatterns: string[];
+
+    if (typeof regex === "string") {
+      regexPatterns = [regex];
+    } else {
+      const lengths = new Set<number>();
+      for (const part of regex) {
+        if (part instanceof Array) {
+          lengths.add(part.length);
+        }
+      }
+
+      if (lengths.size > 1) {
+        return filterOutWithError("Regex array has inconsistent lengths.");
+      }
+
+      const length = Array.from(lengths.values())[0] ?? 1;
+      regexPatterns = Array.from({ length }).map((_, i) => {
+        return regex
+          .map((part) => {
+            if (part instanceof Array) {
+              return part[i];
+            } else {
+              return part;
+            }
+          })
+          .join("");
+      });
+    }
+
+    return regexPatterns.map((regex) => {
+      return {
+        /**
+         * Get the regex for this rule.
+         *
+         * This is a function, since regexes are stateful and remember
+         * the last match from `.exec()`.
+         */
+        getRegex() {
+          return new RegExp(regex, expandedRegexFlags);
+        },
+        tree: rule.tree && {
+          group: rule.tree.group ?? "Ungrouped",
+          label: rule.tree.label ?? "$0",
+        },
+        languages,
+        editor: processEditorEffects(editor),
+      };
+    });
   });
 
   const ruleDecorations = new Set<vscode.TextEditorDecorationType>();
