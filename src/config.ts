@@ -268,6 +268,15 @@ export function getConfig(): Config {
       return filterOutWithError('Rule defined with no "regex" pattern.');
     }
 
+    const shared = {
+      tree: rule.tree && {
+        group: rule.tree.group ?? "Ungrouped",
+        label: rule.tree.label ?? "$0",
+      },
+      languages,
+      editor: processEditorEffects(editor),
+    } satisfies Partial<Rule>;
+
     return processRegex(regex, regexFlags, templates).map(
       ({ regex, flags }) => {
         return {
@@ -280,12 +289,7 @@ export function getConfig(): Config {
           getRegex() {
             return new RegExp(regex, flags);
           },
-          tree: rule.tree && {
-            group: rule.tree.group ?? "Ungrouped",
-            label: rule.tree.label ?? "$0",
-          },
-          languages,
-          editor: processEditorEffects(editor),
+          ...shared,
         };
       }
     );
@@ -403,7 +407,7 @@ export function processRegexFlags(flags: RuleInput["regexFlags"] = {}) {
 }
 
 function processEditorEffects(effects: RuleEffectInput[]) {
-  const decoratedEffects = effects.flatMap((effect): EditorEffect | never[] => {
+  const decoratedEffects = effects.map((effect) => {
     const {
       group = 0,
       link,
@@ -427,23 +431,38 @@ function processEditorEffects(effects: RuleEffectInput[]) {
     }
 
     return {
+      style,
       link,
       hoverMessage,
       inlineReplacement,
       group,
-      decoration: style
-        ? vscode.window.createTextEditorDecorationType(style)
-        : decorationTypes.none,
     };
   });
 
+  // Sort the effects so that they are in descending order of capture group.
+  // This is important. The order in which the decorations are _generated_
+  // (not applied) matters, and the first-defined one takes precedence where
+  // ranges overlap, as they do when styling capture group $0 yellow, and $1 (subset)
+  // blue.
   const sortedEffects = orderBy(
     decoratedEffects,
     (effect) => effect.group,
     "desc"
   );
 
-  return sortedEffects;
+  return sortedEffects.flatMap(
+    ({ style, ...effect }): EditorEffect | never[] => {
+      return {
+        ...effect,
+        // ❗️ Warning! Do not refactor! ❗️
+        // Decorations must be created in the correct order for the correct precedence
+        // to apply. See the comment for `sortedEffects`, above.
+        decoration: style
+          ? vscode.window.createTextEditorDecorationType(style)
+          : decorationTypes.none,
+      };
+    }
+  );
 }
 
 function filterOutWithError(message: string): never[] {

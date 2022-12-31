@@ -26,24 +26,6 @@
           }
         ]
       },
-      // Markdown link
-      {
-        "regex": "\\[(.+?)\\](\\((.+?)\\))",
-        "editor": [
-          { "hoverMessage": "Link to $2", "link": "$2", "color": "#66D9EF" },
-          { "group": 2, "inlineReplacement": "" }
-        ]
-      },
-      {
-        "regex": "#(\\d+)(?:\\s|$)",
-        "regexFlags": { "multiline": true },
-        "editor": [
-          {
-            "link": "https://github.com/ticknovate/ticknovate/pull/$1",
-            "color": "#66D9EF"
-          }
-        ]
-      },
       {
         "regex": "([A-Za-z_-]+)#(\\d+)",
         "editor": [{ "link": "https://github.com/ticknovate/$1/pull/$2" }]
@@ -97,6 +79,39 @@
         "regex": "^ *(//|\\*/|\\*|#|-|\\d+\\.)[^#] *",
         "regexFlags": { "multiline": true },
         "editor": [{ "color": "gray" }]
+      },
+      {
+        "regex": "TIP: .{1,14}(.+)?",
+        "editor": [
+          { "color": "#E6DB74" },
+          { "group": 1, "inlineReplacement": "..." }
+        ]
+      },
+      {
+        "regex": "{{(\\w*?)}}",
+        "regexFlags": { "ignoreCase": true },
+        "editor": [
+          { "color": "#E6DB74" },
+          { "group": 1, "color": "#66D9EF", "textDecoration": "underline" }
+        ]
+      },
+      {
+        "regex": "#(\\d+)(?:\\s|$)",
+        "regexFlags": { "multiline": true },
+        "editor": [
+          {
+            "link": "https://github.com/ticknovate/ticknovate/pull/$1",
+            "color": "#66D9EF"
+          }
+        ]
+      },
+      // Markdown link
+      {
+        "regex": "\\[(.+?)\\](\\((.+?)\\))",
+        "editor": [
+          { "hoverMessage": "Link to $2", "link": "$2", "color": "#66D9EF" },
+          { "group": 2, "inlineReplacement": "" }
+        ]
       }
     ],
     "regexrobin.templates": {
