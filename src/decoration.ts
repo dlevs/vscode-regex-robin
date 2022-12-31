@@ -16,13 +16,9 @@ export function updateDecoration(
   /**
    * All dynamic decoration types.
    *
-   * This is needed for two reasons:
-   * 1. They are in the correct application order, allowing capture group
-   *    styles to apply on top of general match styles, and nested capture
-   *    group styles to apply on top of the outer matches.
-   * 2. Any decoration found not to be relevant is referred to anyway, just
-   *    to _remove_ those decorations from the document where they may have
-   *    previously applied.
+   * This is needed so that we can iterate over _all_ styles, not just those
+   * that are currently applying. This allows us to _unset_ the styles that
+   * should not longer apply when applying relevant styles.
    */
   ruleDecorations: vscode.TextEditorDecorationType[]
 ) {

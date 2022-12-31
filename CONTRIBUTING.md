@@ -27,10 +27,11 @@ General testing involves:
 1. Update the config in the [test workspace](test/extension-test-workspace.code-workspace)
 2. View the effects in the [test file](test/test-sample.md)
 
+There are also comments inline above each rule in the workspace config, so the feedback loop is tight there.
+
 ## Roadmap
 
-1. Documentation, showing example usage, nested regex, etc
-2. Add a keyboard shortcut for expanding all inline replacements
-3. Make the tree view display matches for all files in the workspace
-4. Make it work for multi-root workspaces
-5. Test and document overlapping styles (not nested, but overlapping)
+1. Add a keyboard shortcut for expanding all inline replacements
+2. Make the tree view display matches for all files in the workspace
+3. Make it work for multi-root workspaces
+4. Test and document overlapping styles (not nested, but overlapping)

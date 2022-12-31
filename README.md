@@ -1,39 +1,39 @@
 # Regex Robin
 
-**Regex Robin** is a VS Code extension that automatically turns text into links based upon regex patterns.
+**Regex Robin** is a VS Code extension that allows you to customize the appearance of text in your editor using regex patterns, as well as creating links and hover messages.
 
-![Animated gif showing a code comment that has a link that can be clicked](assets/usage.gif)
-
-## Configuration
-
-Multiple patterns can be defined in your VS Code settings. The following examples highlight common use cases.
+You can configure rules like this:
 
 ```jsonc
 {
   "regexrobin.rules": [
     {
-      "linkPattern": "ISSUE-\\d+",
-      "linkTarget": "https://myorg.atlassian.net/browse/$0"
-      // Example URL: https://myorg.atlassian.net/browse/ISSUE-299
-    },
-    {
-      "linkPattern": "(FOO|BAR)-(\\d+)",
-      "linkTarget": "https://example.com/$1/$2",
-      // Example URL: https://example.com/FOO/123
-
-      // Limit to specific languages
-      "languages": ["plaintext", "markdown"]
-    },
-    {
-      "linkPattern": "SKU([A-Z_]+)",
-      "linkTarget": "https://shop.com?search=$1&min-price=\\$1"
-      // Example URL: https://shop.com?search=PRODUCT_CODE&min-price=$1
-      // Here, `\` is being used as an escape character to prevent substitution
-      // of the second `$1`.
+      "regex": "ISSUE-\\d+",
+      "tree": { "group": "Jira links" },
+      "editor": [
+        {
+          "link": "https://myorg.atlassian.net/browse/$0",
+          "color": "#66D9EF",
+          "hoverMessage": "Jira ticket **$0**"
+        }
+      ]
     }
   ]
 }
 ```
+
+Combined with similar rules to match markdown links, and "TODO" and "NOTE" comments, it leads to the following experience:
+
+![Animated gif showing a code comment that has a link that can be clicked](assets/usage.gif)
+
+In the above example, we're using:
+
+- The tree view to display the matches in the sidebar
+- The "link" feature to create clickable links for issues
+- Custom styling to highlight the matches
+- The `inlineReplacement` feature to hide the URL of the markdown link
+
+More examples are documented in the [example configuration](./test/extension-test-workspace.code-workspace).
 
 ### Rule precedence
 
@@ -97,7 +97,7 @@ just works like this by default. -->
 
 ## Limitations
 
-If you have "Word wrap" enabled, any extra lines created by long text being wrapped will still be visible when using the `inlineReplacement` feature to replace it with something shorter, even if the replacement fits on one line.
+- If you have "Word wrap" enabled, any extra lines created by long text being wrapped will still be visible when using the `inlineReplacement` feature to replace it with something shorter, even if the replacement fits on one line.
 
 ## The logo
 
