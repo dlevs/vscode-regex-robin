@@ -135,7 +135,7 @@ export const decorationTypes = {
    * Hide content.
    */
   hide: vscode.window.createTextEditorDecorationType({
-    textDecoration: "none; display: none;",
+    textDecoration: "none; display: none;", // This is a hack to hide content.
   }),
 };
 

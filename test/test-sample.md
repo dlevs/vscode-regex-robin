@@ -1,15 +1,19 @@
 ## Normal markdown text
 
 TODO: This text should be highlighted.
-As should this.
+As should this. It will also appear in the tree view under `Explore > Regex Robin`.
 
 This should not be highlighted.
 
-{{Foo}}
+{{FOO}}
 
 [My link, where the URL is hidden](https://google.com)
 
 TIP: This text will be shortened to 14 characters, max.
+
+((Shortened text with an icon in the gutter))
+
+https://github.com/dlevs/duration-fns/pull/20
 
 ## Nesting
 
@@ -50,4 +54,17 @@ function imNotHighlighted() {}
 // As should this.
 //
 // But not this.
+```
+
+## HTML
+
+```html
+<main class="main my-other-class lots-of-classes">
+  <header>
+    <h1 class="heading heading-main super-heading mb-20">My Heading</h1>
+  </header>
+  <section>
+    <p class="fancy-paragraph mb-10">My paragraph text</p>
+  </section>
+</main>
 ```

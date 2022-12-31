@@ -6,8 +6,9 @@
   ],
   "settings": {
     "regexrobin.rules": [
+      // Jira links, like "ISSUE-123"
       {
-        "regex": "(CORE|FS|JM|PPA|IN|LUK2)-\\d+",
+        "regex": "ISSUE-\\d+",
         "tree": { "group": "Jira links" },
         "editor": [
           {
@@ -17,19 +18,20 @@
           }
         ]
       },
+      // Turns a pasted github pull request URL into something more readable,
+      // like https://github.com/dlevs/duration-fns/pull/20.
       {
-        "regex": "class=\"(.*?)\"",
+        "regex": "(https://github.com/.+?/)(.*?)(/pull/)(\\d+)",
         "editor": [
-          {
-            "group": 1,
-            "inlineReplacement": { "contentText": "•••", "color": "#666" }
-          }
+          { "color": "#66D9EF" },
+          // Rather than replace the entire match, just replace parts of it, so the
+          // majority of what is shown _is_ the original string, so cursor position
+          // is predictable when it expands upon click.
+          { "group": 1, "inlineReplacement": "" },
+          { "group": 3, "inlineReplacement": "#" }
         ]
       },
-      {
-        "regex": "([A-Za-z_-]+)#(\\d+)",
-        "editor": [{ "link": "https://github.com/ticknovate/$1/pull/$2" }]
-      },
+      // Accentuate all occurrences of "NOTE:"
       {
         "regex": "(NOTE):",
         "editor": [
@@ -41,6 +43,8 @@
           }
         ]
       },
+      // Color all text after the word "NOTE:", and populate the tree view with
+      // the text. This uses a regex template for reusability.
       {
         "regex": {
           "template": "multi-line-match",
@@ -49,6 +53,7 @@
         "tree": { "group": "Notes", "label": "$1" },
         "editor": [{ "group": 1, "color": "#AE81FF" }]
       },
+      // Accentuate all occurrences of "TODO:"
       {
         "regex": "(TODO):",
         "editor": [
@@ -60,12 +65,8 @@
           }
         ]
       },
-      // {
-      //   "regex": "(?://|\\*|#).*?TODO:(.*(?:\n *(?://|\\*|#) *?(?:(?!TODO).)+$)*)",
-      //   "regexFlags": { "multiline": true },
-      //   "tree": { "group": "TODOs", "label": "$1" },
-      //   "editor": [{ "group": 1, "color": "#F92672" }]
-      // },
+      // Color all text after the word "TODO:", and populate the tree view with
+      // the text. This uses a regex template for reusability.
       {
         "regex": {
           "template": "multi-line-match",
@@ -74,19 +75,43 @@
         "tree": { "group": "TODOs", "label": "$1" },
         "editor": [{ "group": 1, "color": "#F92672" }]
       },
-      // Reset the comment from the TODO rule above...
+      // A bit of a hack to make the "*" and "//" comment characters gray again,
+      // since the NOTE and TODO rules above overrode them.
       {
         "regex": "^ *(//|\\*/|\\*|#|-|\\d+\\.)[^#] *",
         "regexFlags": { "multiline": true },
         "editor": [{ "color": "gray" }]
       },
+      // An example of shortening text, like TIP: This is long text but will be shortened.
       {
         "regex": "TIP: .{1,14}(.+)?",
         "editor": [
-          { "color": "#E6DB74" },
-          { "group": 1, "inlineReplacement": "..." }
+          { "color": "#E6DB74", "hoverMessage": "$0" },
+          {
+            "group": 1,
+            "inlineReplacement": "..."
+          }
         ]
       },
+      // An example of shortening text in such a way that leads to worse UX when
+      // clicking on the replacement, like ((Short text ahoy!))
+      {
+        "regex": "\\(\\((.{0,7}).*?\\)\\)",
+        "editor": [
+          {
+            "color": "#AE81FF",
+            "borderRadius": "3px",
+            "gutterIconPath": "/Users/daniellevett/Projects/vscode-regex-robin/assets/icon.png",
+            "gutterIconSize": "contain",
+            "inlineReplacement": {
+              "contentText": "👀 $1",
+              "color": "#FD971F"
+            },
+            "hoverMessage": "This style of shortening is not recommended because it replaces the entirety of the text, so when you click on it, the cursor always jumps to the start or end of the line.\n\nIt's better to use `inlineReplacement` for the specific capture groups you want to hide."
+          }
+        ]
+      },
+      // Highlighting of handlebars-style variables, like "{{foo}}"
       {
         "regex": "{{(\\w*?)}}",
         "regexFlags": { "ignoreCase": true },
@@ -95,26 +120,33 @@
           { "group": 1, "color": "#66D9EF", "textDecoration": "underline" }
         ]
       },
+      // Markdown link, like [Google](https://google.com)
       {
-        "regex": "#(\\d+)(?:\\s|$)",
-        "regexFlags": { "multiline": true },
+        "regex": "(\\[.+?\\])(\\((.+?)\\))",
         "editor": [
-          {
-            "link": "https://github.com/ticknovate/ticknovate/pull/$1",
-            "color": "#66D9EF"
-          }
+          { "hoverMessage": "Link to $3", "color": "#66D9EF" },
+          // A limitation here is that the link must be applied only to the first group,
+          // since group 2 will already have a link provided, and they can't be nested -
+          // the outer link will just not work.
+          { "group": 1, "link": "$3" },
+          { "group": 2, "inlineReplacement": "" }
         ]
       },
-      // Markdown link
+      // HTML class attributes, like "class="foo bar""
       {
-        "regex": "\\[(.+?)\\](\\((.+?)\\))",
+        "regex": "class=\"(.*?)\"",
         "editor": [
-          { "hoverMessage": "Link to $2", "link": "$2", "color": "#66D9EF" },
-          { "group": 2, "inlineReplacement": "" }
+          {
+            "group": 1,
+            "inlineReplacement": { "contentText": "•••", "color": "#666" }
+          }
         ]
       }
     ],
     "regexrobin.templates": {
+      // A regex that matches all text after a given word, wrapping onto the next line
+      // (but not 2 consecutive lines), as long as the next line is the same as the
+      // matched line in terms of comment style.
       "multi-line-match": {
         "regex": [
           // Opening comment (first 3) / bullet point / start of line
