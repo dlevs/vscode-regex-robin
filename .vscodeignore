@@ -1,5 +1,6 @@
 .vscode/**
 assets/**
+!assets/icon.png
 **/*.ts
 **/*.map
 .gitignore
