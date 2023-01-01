@@ -33,5 +33,6 @@ There are also comments inline above each rule in the workspace config, so the f
 
 1. Add a keyboard shortcut for expanding all inline replacements
 2. Make the tree view display matches for all files in the workspace
+   1. Make it possible to subgroup those things by part of the match, e.g. for hashtags and @mentions
 3. Make it work for multi-root workspaces
 4. Test and document overlapping styles (not nested, but overlapping)
