@@ -80,7 +80,7 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
       if (!rule.tree) return [];
 
       return {
-        group: rule.tree.group,
+        group: replaceMatches(rule.tree.group, matchGroups).trim(),
         label: replaceMatches(rule.tree.label, matchGroups).trim(),
         target: documentUri && {
           uri: documentUri,

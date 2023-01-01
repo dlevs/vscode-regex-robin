@@ -21,7 +21,7 @@ TODO: This text should be highlighted.
 As should this. But {{THIS_SHOULD_BE_BLUE}}, and [links](https://google.com) should be blue too.
 The TIP: Is yellow and truncated.
 
-This should not be highlighted. But @Clara should be highlighted and appear in the tree view.
+This should not be highlighted. But @Clara and @Gary should be highlighted and appear in the tree view.
 
 ## Bullet lists
 

@@ -215,6 +215,8 @@ export interface TreeParams {
   /**
    * A label to group matches under in the tree view.
    *
+   * Capture group substitution is supported, e.g. "💁🏻‍♂️ $3".
+   *
    * @default "Ungrouped"
    */
   group: string;

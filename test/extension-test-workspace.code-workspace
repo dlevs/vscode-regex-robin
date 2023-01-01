@@ -6,13 +6,13 @@
   ],
   "settings": {
     "regexrobin.rules": [
-      // "At" references, like @Clara and @Gary
+      // "At" references, like @Clara and @Gary.
       {
-        "regex": "(?<=(.*))(?!@default)(@[^\\s]+)(?=(.*))",
-        "regexFlags": { "ignoreCase": true, "multiline": true },
+        "languages": ["markdown"],
+        "regex": "(?<=(.*))(@([^\\s,\\.!?]+))(?=(.*))",
+        "regexFlags": { "multiline": true },
         "editor": [{ "group": 2, "color": "#66D9EF" }],
-        // TODO: This match currently needs some kind of "subgroup" feature to make sense
-        "tree": { "group": "People", "label": "$1$2$3" }
+        "tree": { "group": "💁🏻‍♂️ $3", "label": "$1$2$4" }
       },
       // Jira links, like "ISSUE-123"
       {
@@ -39,7 +39,7 @@
           { "group": 3, "inlineReplacement": "#" }
         ]
       },
-      // Accentuate all occurrences of "NOTE:", coloring it until the end of the line
+      // Highlight "NOTE" comments until the end of the line, and add them to the tree view.
       {
         "regex": "(NOTE):(.*)",
         "tree": { "group": "Notes", "label": "$2" },
@@ -52,8 +52,7 @@
           }
         ]
       },
-      // Color all text after the word "NOTE:", and populate the tree view with
-      // the text. This uses a regex template for reusability.
+      // Color subsequent lines for "NOTE": comments..
       {
         "regex": {
           "template": "multi-line-match",
@@ -61,7 +60,7 @@
         },
         "editor": [{ "group": 2, "color": "#AE81FF" }]
       },
-      // Accentuate all occurrences of "TODO:", coloring it until the end of the line
+      // Highlight "TODO" comments until the end of the line, and add them to the tree view.
       {
         "regex": "(TODO):(.*)",
         "tree": { "group": "TODOs", "label": "$2" },
@@ -74,8 +73,7 @@
           }
         ]
       },
-      // Color all text after the word "TODO:", and populate the tree view with
-      // the text. This uses a regex template for reusability.
+      // Color subsequent lines for "TODO": comments.
       {
         "regex": {
           "template": "multi-line-match",
