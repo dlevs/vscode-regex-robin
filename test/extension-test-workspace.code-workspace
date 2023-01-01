@@ -9,7 +9,7 @@
       // "At" references, like @Clara and @Gary.
       {
         "languages": ["markdown"],
-        "regex": "(?<=(.*))(@([^\\s,\\.!?]+))(?=(.*))",
+        "regex": "(?<=(.*))(@(\\w+))(?=(.*))",
         "regexFlags": { "multiline": true },
         "editor": [{ "group": 2, "color": "#66D9EF" }],
         "tree": { "group": "💁🏻‍♂️ $3", "label": "$1$2$4" }
