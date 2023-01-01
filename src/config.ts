@@ -27,10 +27,6 @@ export function getConfig(): Config {
   const rulesOutput = reversedRules.flatMap((rule): Rule[] => {
     const { regex, regexFlags, languages = ["*"], editor = [] } = rule;
 
-    if (!editor.length) {
-      return filterOutWithError('Rule defined with no "effects".');
-    }
-
     if (!regex) {
       return filterOutWithError('Rule defined with no "regex" pattern.');
     }
