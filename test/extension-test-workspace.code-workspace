@@ -6,6 +6,14 @@
   ],
   "settings": {
     "regexrobin.rules": [
+      // "At" references, like @Clara and @Gary
+      {
+        "regex": "(?<=(.*))(?!@default)(@[^\\s]+)(?=(.*))",
+        "regexFlags": { "ignoreCase": true, "multiline": true },
+        "editor": [{ "group": 2, "color": "#66D9EF" }],
+        // TODO: This match currently needs some kind of "subgroup" feature to make sense
+        "tree": { "group": "People", "label": "$1$2$3" }
+      },
       // Jira links, like "ISSUE-123"
       {
         "regex": "ISSUE-\\d+",
@@ -31,9 +39,10 @@
           { "group": 3, "inlineReplacement": "#" }
         ]
       },
-      // Accentuate all occurrences of "NOTE:"
+      // Accentuate all occurrences of "NOTE:", coloring it until the end of the line
       {
-        "regex": "(NOTE):",
+        "regex": "(NOTE):(.*)",
+        "tree": { "group": "Notes", "label": "$2" },
         "editor": [
           { "color": "#AE81FF" },
           {
@@ -50,12 +59,12 @@
           "template": "multi-line-match",
           "replace": { "TEXT": "NOTE" }
         },
-        "tree": { "group": "Notes", "label": "$1" },
-        "editor": [{ "group": 1, "color": "#AE81FF" }]
+        "editor": [{ "group": 2, "color": "#AE81FF" }]
       },
-      // Accentuate all occurrences of "TODO:"
+      // Accentuate all occurrences of "TODO:", coloring it until the end of the line
       {
-        "regex": "(TODO):",
+        "regex": "(TODO):(.*)",
+        "tree": { "group": "TODOs", "label": "$2" },
         "editor": [
           { "color": "#F92672" },
           {
@@ -72,15 +81,14 @@
           "template": "multi-line-match",
           "replace": { "TEXT": "TODO" }
         },
-        "tree": { "group": "TODOs", "label": "$1" },
-        "editor": [{ "group": 1, "color": "#F92672" }]
+        "editor": [{ "group": 2, "color": "#F92672" }]
       },
       // A bit of a hack to make the "*" and "//" comment characters gray again,
       // since the NOTE and TODO rules above overrode them.
       {
         "regex": "^ *(//|\\*/|\\*|#|-|\\d+\\.)[^#] *",
         "regexFlags": { "multiline": true },
-        "editor": [{ "color": "gray" }]
+        "editor": [{ "group": 1, "color": "gray" }]
       },
       // An example of shortening text, like TIP: This is long text but will be shortened.
       {
@@ -144,29 +152,52 @@
       }
     ],
     "regexrobin.templates": {
-      // A regex that matches all text after a given word, wrapping onto the next line
-      // (but not 2 consecutive lines), as long as the next line is the same as the
-      // matched line in terms of comment style.
+      // A regex that matches all text after a given word ("TEXT:"), wrapping onto the next line
+      // (but not 2 consecutive lines), as long as the next line has the same comment style as
+      // the matched line.
+      //
+      // It is intended for TODO-style comments, like:
+      // TODO: Refactor this
+      //
+      // This regex is complex. It reminds me of the [stack overflow thread saying regex is not suitable for HTML parsing](https://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags/1732454#1732454).
+      // Similarly, this regex will never work perfectly without using a language-aware parser.
+      // But it's good enough.
       "multi-line-match": {
         "regex": [
-          // Opening comment (first 3) / bullet point / start of line
-          ["//.*?", "\\*.*?", "#.*?", "-.*?", "^ *?"],
+          // ------------------- CAPTURE GROUP 1 - Comment type -------------------
+          // Capture the start of the line. It will be used later as a backreference.
+          "(",
+          [
+            // 1. A comment. Capture the whitespace before, and comment token used.
+            "^ *(?://|\\*|#)",
+            // 2. A markdown list item.
+            "^ *(?:-|\\d\\.)"
+          ],
+          ")",
 
-          "TEXT:(",
+          // --------------------------- TEXT TO MATCH ----------------------------
+          // Match anything, up until the text is found on this line.
+          ".*?TEXT:",
 
-          /*  */ // Anything between comment and end of line
-          /*  */ ".*",
+          // --------------------- CAPTURE GROUP 2 - Content ----------------------
+          // The main capture group, capturing the content after "TEXT:"
 
-          /*  */ // Try to extend the match to the next line if possible
-          /*  */ "(?:",
-          /*      */ // New line
-          /*      */ "\n *",
-          /*      */ //  New line comment
-          /*      */ ["// +?", "\\* +?", "# +?", "[^-] +?", "^ *?"],
-          /*      */ // Content on the new line up until the next "TEXT".
-          /*      */ // There _must_ be content, otherwise the match is over.
-          /*      */ "(?:(?!TEXT).)+$",
-          /*  */ ")*",
+          // Capture all the content on this line...
+          "(.*",
+
+          // ...and continue capturing on the next line.
+          "(?:\n",
+          [
+            // 1. Match same comment style and pre-comment-token indentation as above.
+            "\\1",
+            // 2. Do not match if the first non-whitespace character is a new list item.
+            "(?! *(?:-|\\d\\.))"
+          ],
+          // There _must_ be non-whitespace content, otherwise the match is over, and
+          // that content cannot be another match, since that would need to be a _new_
+          // match.
+          "(?:(?!TEXT| *$).)+",
+          ")*", // New lines are optional (0 or more)
 
           ")"
         ],

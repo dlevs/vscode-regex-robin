@@ -36,11 +36,11 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
   private tree: Entry[];
 
   constructor(matches: DocumentMatch[]) {
-    this.tree = this.mapMatchesToTree(matches);
+    this.tree = this.mapMatchesToTreeEntries(matches);
   }
 
   updateMatches(matches: DocumentMatch[]) {
-    this.tree = this.mapMatchesToTree(matches);
+    this.tree = this.mapMatchesToTreeEntries(matches);
     this.refresh();
   }
 
@@ -75,7 +75,7 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
     };
   }
 
-  private mapMatchesToTree(matches: DocumentMatch[]) {
+  private mapMatchesToTreeEntries(matches: DocumentMatch[]): Entry[] {
     const treeItems = matches.flatMap(({ rule, matchGroups, documentUri }) => {
       if (!rule.tree) return [];
 
