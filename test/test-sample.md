@@ -8,6 +8,7 @@ This should not be highlighted.
 {{FOO}}
 
 [My link, where the URL is hidden](https://google.com)
+[A relative link](../README.md)
 
 TIP: This text will be shortened to 14 characters, max.
 

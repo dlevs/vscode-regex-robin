@@ -1,3 +1,4 @@
+import path from "node:path";
 import * as vscode from "vscode";
 import type { Rule } from "./types/config";
 import {
@@ -54,7 +55,7 @@ export class LinkProvider
     matches: DocumentMatch[],
     transform: (params: { range: vscode.Range; target: vscode.Uri }) => T
   ) {
-    return matches.flatMap(({ matchGroups, rule }) => {
+    return matches.flatMap(({ matchGroups, rule, documentUri }) => {
       return rule.editor.flatMap((effect) => {
         const group = matchGroups[effect.group];
 
@@ -62,7 +63,12 @@ export class LinkProvider
           return [];
         }
 
-        const url = replaceMatches(effect.link, matchGroups);
+        let url = replaceMatches(effect.link, matchGroups);
+        const isRelativeURL = url.startsWith(".");
+
+        if (isRelativeURL && documentUri) {
+          url = path.join(path.dirname(documentUri.path), url);
+        }
 
         return transform({
           range: group.range,
