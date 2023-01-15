@@ -36,7 +36,7 @@ export function updateDecoration(
     allEffects,
     ({ effect }) => effect.decoration
   );
-  const selection = editor.selection;
+  const selections = editor.selections;
   const hideRanges: vscode.Range[] = [];
 
   // Apply decoration
@@ -53,9 +53,8 @@ export function updateDecoration(
         let inlineReplacementText = effect.inlineReplacement?.contentText;
 
         if (inlineReplacementText != null) {
-          const showInlineReplacement = !rangesOverlapLines(
-            group.range,
-            selection
+          const showInlineReplacement = !selections.some((selection) =>
+            rangesOverlapLines(group.range, selection)
           );
           if (showInlineReplacement) {
             // An inline replacement is defined, and the cursor is not on this match
