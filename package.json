@@ -2,7 +2,7 @@
   "name": "regex-robin",
   "displayName": "Regex Robin",
   "description": "Style, manipulate and create links in your editor using regular expressions.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "DanLevett",
   "license": "MIT",
   "engines": {
