@@ -12,7 +12,7 @@
         "regex": "(?<=(.*))(@(\\w+))(?=(.*))",
         "regexFlags": { "multiline": true },
         "editor": [{ "group": 2, "color": "#66D9EF" }],
-        "tree": { "group": "💁🏻‍♂️ $3", "label": "$1$2$4" }
+        "tree": { "group": ["Mentions", "$3"], "label": "$1$2$4" }
       },
       // Jira links, like "ISSUE-123"
       {

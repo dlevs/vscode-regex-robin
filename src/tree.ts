@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import groupBy from "lodash/groupBy";
 import sortBy from "lodash/sortBy";
 import { DocumentMatch } from "./util/documentUtils";
 import { replaceMatches } from "./util/stringUtils";
@@ -14,16 +13,21 @@ interface Entry {
 }
 
 /**
- * Display all matches in a file, grouped with the headings configured
- * by the user.
+ * An intermediate data shape for efficiently building nested
+ * structure. Gets transformed into `Directory` for easy usage,
+ * with all values sorted.
  *
- * Nesting only goes one level deep. For example:
- * - TODOs
- *   - Matched TODO text 1
- *   - Matched TODO text 2
- * - FIXMEs
- *   - Matched FIXME text 1
- *   - Matched FIXME text 2
+ * In future, perhaps that can be deferred to when the user
+ * actually clicks to expand a node in the tree.
+ */
+interface DirectoryTree {
+  items: Omit<Entry, "children">[];
+  directories: Record<string, DirectoryTree>;
+}
+
+/**
+ * Display all matches in a file, grouped with the headings configured
+ * by the user. The groups can be nested.
  *
  * Matches can be clicked to jump to where it was found in the source document.
  */
@@ -36,11 +40,11 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
   private tree: Entry[];
 
   constructor(matches: DocumentMatch[]) {
-    this.tree = this.mapMatchesToTreeEntries(matches);
+    this.tree = this.mapMatchesToEntries(matches);
   }
 
   updateMatches(matches: DocumentMatch[]) {
-    this.tree = this.mapMatchesToTreeEntries(matches);
+    this.tree = this.mapMatchesToEntries(matches);
     this.refresh();
   }
 
@@ -59,7 +63,7 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
       tooltip: "This is the tooltip",
       // iconPath: "assets/icon.png",
       collapsibleState: entry.children.length
-        ? vscode.TreeItemCollapsibleState.Expanded
+        ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None,
       command: entry.target && {
         command: "vscode.open",
@@ -75,45 +79,71 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
     };
   }
 
-  private mapMatchesToTreeEntries(matches: DocumentMatch[]): Entry[] {
-    const treeItems = matches.flatMap(({ rule, matchGroups, documentUri }) => {
-      if (!rule.tree) return [];
-
-      return {
-        group: replaceMatches(rule.tree.group, matchGroups).trim(),
-        label: replaceMatches(rule.tree.label, matchGroups).trim(),
-        target: documentUri && {
-          uri: documentUri,
-          range: matchGroups[0].range,
-        },
-        children: [],
-      };
-    });
-    const treeItemsByGroup = groupBy(treeItems, (item) => item.group);
-    const grouped: Entry[] = Object.values(treeItemsByGroup).map(
-      (children): Entry => {
-        const [firstChild] = children;
-        const sortedChildren = sortBy(children, (child) => child.label);
-
-        // Keep TypeScript happy
-        if (!firstChild) {
-          throw new Error(
-            "Expected at least one child in array grouped by child attributes."
-          );
-        }
+  private mapMatchesToEntries(matches: DocumentMatch[]): Entry[] {
+    // Get all entries in a flat array, each with a `group` property
+    // defining where it should ultimately end up in the tree.
+    //
+    // Example of `group`: ["TODOs", "Urgent"]
+    const entriesFlat = matches.flatMap(
+      ({ rule, matchGroups, documentUri }) => {
+        if (!rule.tree) return [];
 
         return {
-          label: `${firstChild.group} (${children.length})`,
-          children: sortedChildren,
+          group: rule.tree.group.map((group) =>
+            replaceMatches(group, matchGroups).trim()
+          ),
+          label: replaceMatches(rule.tree.label, matchGroups).trim(),
+          target: documentUri && {
+            uri: documentUri,
+            range: matchGroups[0].range,
+          },
         };
       }
     );
-    const sorted = sortBy(grouped, (group) => group.label);
 
-    return sorted;
+    // Put the entries into a nested tree structure.
+    const tree: DirectoryTree = { items: [], directories: {} };
+
+    for (const entry of entriesFlat) {
+      let currentNode = tree;
+
+      for (const group of entry.group) {
+        currentNode = currentNode.directories[group] ??= {
+          items: [],
+          directories: {},
+        };
+      }
+
+      currentNode.items.push(entry);
+    }
+
+    // Map entries into a more natural tree shape, with sorted values.
+    return mapDirectoryTreeToEntries(tree);
   }
 
   private refresh(): void {
     this._onDidChangeTreeData.fire(undefined);
   }
+}
+
+/**
+ * Map intermediate data structure optimized for building up tree
+ * structure into a simpler format, with sorted values.
+ */
+function mapDirectoryTreeToEntries(tree: DirectoryTree): Entry[] {
+  const children = Object.entries(tree.directories).map(
+    ([label, directory]) => {
+      return {
+        label,
+        children: mapDirectoryTreeToEntries(directory),
+      };
+    }
+  );
+  const sortedDirectories = sortBy(children, ({ label }) => label);
+  const sortedItems = sortBy(tree.items, ({ label }) => label);
+
+  return [
+    ...sortedDirectories,
+    ...sortedItems.map((entry) => ({ children: [], ...entry })),
+  ];
 }

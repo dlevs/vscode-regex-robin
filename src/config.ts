@@ -9,7 +9,7 @@ import type {
   RegexInput,
   RegexTemplate,
   Rule,
-  RuleEffectInput,
+  EditorEffectInput,
   RuleInput,
 } from "./types/config";
 
@@ -31,9 +31,16 @@ export function getConfig(): Config {
       return filterOutWithError('Rule defined with no "regex" pattern.');
     }
 
+    const group =
+      rule.tree?.group != null
+        ? rule.tree.group instanceof Array
+          ? rule.tree.group
+          : [rule.tree.group]
+        : [];
+
     const shared = {
       tree: rule.tree && {
-        group: rule.tree.group ?? "Ungrouped",
+        group,
         label: rule.tree.label ?? "$0",
       },
       languages,
@@ -169,7 +176,7 @@ export function processRegexFlags(flags: RuleInput["regexFlags"] = {}) {
   return output;
 }
 
-function processEditorEffects(effects: RuleEffectInput[]) {
+function processEditorEffects(effects: EditorEffectInput[]) {
   const decoratedEffects = effects.map((effect) => {
     const {
       group = 0,

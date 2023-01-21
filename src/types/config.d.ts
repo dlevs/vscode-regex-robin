@@ -30,7 +30,7 @@ export interface Rule {
   tree?: TreeParams;
 }
 
-export interface EditorEffect extends RuleEffectInput {
+export interface EditorEffect extends EditorEffectInput {
   /**
    * Capture group to apply this effect to.
    *
@@ -47,6 +47,11 @@ export interface EditorEffect extends RuleEffectInput {
    * Generated on init - not from config.
    */
   decoration: vscode.TextEditorDecorationType;
+}
+
+interface TreeParams extends TreeParamsInput {
+  group: string[];
+  label: string;
 }
 
 export type InlineReplacement =
@@ -170,11 +175,11 @@ export interface RuleInput {
    *
    * @default []
    */
-  editor?: RuleEffectInput[];
+  editor?: EditorEffectInput[];
   /**
    * Options for the tree view.
    */
-  tree?: Partial<TreeParams>;
+  tree?: TreeParamsInput;
 }
 
 /**
@@ -211,15 +216,14 @@ export interface RegexFlagsInput {
   unicode?: boolean;
 }
 
-export interface TreeParams {
+export interface TreeParamsInput {
   /**
    * A label to group matches under in the tree view.
+   * An array of labels may be passed to enable nested entries.
    *
    * Capture group substitution is supported, e.g. "💁🏻‍♂️ $3".
-   *
-   * @default "Ungrouped"
    */
-  group: string;
+  group?: string | string[];
   /**
    * The text to display for each match in the tree view.
    *
@@ -227,10 +231,10 @@ export interface TreeParams {
    *
    * @default "$0"
    */
-  label: string;
+  label?: string;
 }
 
-export interface RuleEffectInput extends vscode.DecorationRenderOptions {
+export interface EditorEffectInput extends vscode.DecorationRenderOptions {
   /**
    * The portion of the matched text to apply the effect to.
    *
