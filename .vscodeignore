@@ -1,7 +1,4 @@
-.vscode/**
-assets/**
+**/*
+!out/main.js
 !assets/icon.png
-**/*.ts
-**/*.map
-.gitignore
-tsconfig.json
+!README.md

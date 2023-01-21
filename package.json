@@ -14,11 +14,14 @@
   "scripts": {
     "vscode:prepublish": "npm run build && npm run lint && npm run test",
     "build": "npm run build:extension && npm run build:config",
-    "build:extension": "tsc",
+    "build:extension": "npm run esbuild -- --minify",
     "build:config": "ts-node ./src/scripts/generateConfigSchema.ts",
-    "watch": "tsc -watch",
+    "esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "watch": "npm run esbuild -- --sourcemap --watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "vitest --run src",
+    "test": "npm run test:unit && npm run test:compile",
+    "test:unit": "vitest --run src",
+    "test:compile": "tsc",
     "test:watch": "vitest src"
   },
   "dependencies": {
@@ -31,6 +34,7 @@
     "@typescript-eslint/eslint-plugin": "^5.47.1",
     "@typescript-eslint/parser": "^5.47.1",
     "deref": "^0.7.6",
+    "esbuild": "^0.17.3",
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.5.0",
     "prettier": "^2.8.1",
@@ -60,7 +64,7 @@
     "auto",
     "autolink"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/main.js",
   "contributes": {
     "configuration": {
       "title": "Regex Robin",
