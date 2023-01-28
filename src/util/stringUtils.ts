@@ -1,3 +1,5 @@
+import * as vscode from "vscode";
+
 /**
  * Populate string with variables from regex capture groups.
  *
@@ -14,8 +16,40 @@ export function replaceMatches(
   matchGroups: ({ match: string } | null)[]
 ) {
   return template
-    .replace(/(?<!\\)\$(\d)/g, (match, index) => {
-      return matchGroups[Number(index)]?.match ?? "";
+    .replace(/(?<!\\)\$(?:(\d+)|\{(.+?)\})/g, (_match, group1, group2) => {
+      const expression =
+        typeof group1 === "string"
+          ? group1 // E.g. $1
+          : typeof group2 === "string"
+          ? group2 // E.g. ${1}
+          : "";
+      const [variableName, ...transforms] = expression.split(":");
+
+      if (!variableName) {
+        return "";
+      }
+
+      const isNumber = /^\d+$/.test(variableName);
+
+      let output: string | number = isNumber
+        ? matchGroups[Number(variableName)]?.match ?? ""
+        : "";
+
+      for (const transform of transforms) {
+        if (transform in String.prototype) {
+          output = String(output)[transform as any]();
+        } else if (transform in Number.prototype) {
+          output = Number(output)[transform as any]();
+        } else if (transform in Math) {
+          output = Math[transform](Number(output));
+        } else {
+          vscode.window.showErrorMessage(
+            `Unknown transform "${transform}" ignored`
+          );
+        }
+      }
+
+      return String(output);
     })
     .replace(/\\\$/g, "$");
 }

@@ -1,5 +1,7 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { replaceMatches } from "./stringUtils";
+
+vi.mock("vscode");
 
 describe("replaceMatches()", () => {
   test("replacing variables", () => {
@@ -41,9 +43,30 @@ describe("replaceMatches()", () => {
     ).toBe("Gary has $20, which is +$10 more than yesterday");
   });
 
-  // This one is not necessarily correct, but it's what we have now
-  // and seems reasonable. We can extend escape sequences later if needed.
-  test("only groups 0-9 are valid variables", () => {
-    expect(replaceMatches("$0-$1-$10-$21", [])).toBe("--0-1");
+  test("curly bracket syntax works", () => {
+    expect(replaceMatches("0${1}3", [{ match: "AB" }, { match: "A" }])).toBe(
+      "0A3"
+    );
+  });
+
+  test("multi-digit capture groups work", () => {
+    expect(
+      replaceMatches(
+        "$0-$1-$10-$21-${10}0",
+        Array.from({ length: 100 }).map((_, i) => ({ match: String(i) }))
+      )
+    ).toBe("0-1-10-21-100");
+  });
+
+  // TODO: Extract this, and move to a different test / `description` block
+  test("transforms work", () => {
+    expect(
+      replaceMatches("${0:toUpperCase:trim}", [{ match: "  Hello world! " }])
+    ).toBe("HELLO WORLD!");
+  });
+
+  test("transforms work", () => {
+    expect(replaceMatches("${0:ceil}", [{ match: "19.728" }])).toBe("20");
+    expect(replaceMatches("${0:floor}", [{ match: "19.728" }])).toBe("19");
   });
 });
