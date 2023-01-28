@@ -25,7 +25,8 @@
     "test:watch": "vitest src"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "tokenizr": "^1.6.8"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",

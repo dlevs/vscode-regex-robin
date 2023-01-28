@@ -59,14 +59,37 @@ describe("replaceMatches()", () => {
   });
 
   // TODO: Extract this, and move to a different test / `description` block
-  test("transforms work", () => {
+  test("string transforms work", () => {
     expect(
-      replaceMatches("${0:toUpperCase:trim}", [{ match: "  Hello world! " }])
+      replaceMatches("${0:toUpperCase():trim()}", [
+        { match: "  Hello world! " },
+      ])
     ).toBe("HELLO WORLD!");
+    expect(
+      replaceMatches("${0:slice(0, -1)}", [{ match: "Hello world!" }])
+    ).toBe("Hello world");
+    expect(
+      replaceMatches("${0:slice(0, +6.0):trim()}", [{ match: "Hello world!" }])
+    ).toBe("Hello");
+    expect(
+      replaceMatches("${0:replace(/\\|/, '_')}", [{ match: "A|B|C" }])
+    ).toBe("A_B|C");
+    expect(
+      replaceMatches("${0:replace(/\\|/g, '_')}", [{ match: "A|B|C" }])
+    ).toBe("A_B_C");
   });
 
-  test("transforms work", () => {
-    expect(replaceMatches("${0:ceil}", [{ match: "19.728" }])).toBe("20");
-    expect(replaceMatches("${0:floor}", [{ match: "19.728" }])).toBe("19");
+  test("number transforms work", () => {
+    expect(replaceMatches("${0:ceil()}", [{ match: "19.728" }])).toBe("20");
+    expect(
+      replaceMatches("${0:floor():toFixed(2)}", [{ match: "19.728" }])
+    ).toBe("19.00");
+  });
+
+  test("number transforms work with explicit variable positioning", () => {
+    expect(replaceMatches("${0:min(0, _, 1, 2)}", [{ match: "-10" }])).toBe(
+      "-10"
+    );
+    expect(replaceMatches("${0:min(0, 1, 2)}", [{ match: "-10" }])).toBe("0");
   });
 });
