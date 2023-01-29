@@ -3,19 +3,19 @@ import Tokenizr, { ActionContext } from "tokenizr";
 
 // TODO: tidy
 
-type Token =
-  | {
-      type: "subject";
-      value:
-        | { type: "envVariable"; key: string }
-        | { type: "variable"; key: string }
-        | { type: "matchIndex"; key: number };
-    }
-  | { type: "methodName"; value: string }
-  | { type: "argument"; value: unknown }
-  | { type: "argumentPlaceholder" }
-  | { type: "expressionSeparator" }
-  | { type: "EOF" };
+// type Token =
+//   | {
+//       type: "subject";
+//       value:
+//         | { type: "envVariable"; key: string }
+//         | { type: "variable"; key: string }
+//         | { type: "matchIndex"; key: number };
+//     }
+//   | { type: "methodName"; value: string }
+//   | { type: "argument"; value: unknown }
+//   | { type: "argumentPlaceholder" }
+//   | { type: "expressionSeparator" }
+//   | { type: "EOF" };
 
 function acceptToken(ctx: ActionContext, token: Token) {
   ctx.accept(token.type, "value" in token ? token.value : undefined);
@@ -23,94 +23,6 @@ function acceptToken(ctx: ActionContext, token: Token) {
 
 const ARGUMENT_PLACEHOLDER = Symbol("placeholder");
 
-export function createExpressionsLexer() {
-  const lexer = new Tokenizr();
-
-  lexer.rule(/^(?:env:)?.*?(?=(?::|$))/, (ctx, match) => {
-    // Shallow array
-    if (match[0].startsWith("env:")) {
-      acceptToken(ctx, {
-        type: "subject",
-        value: {
-          type: "envVariable",
-          key: match[0].replace("env:", ""),
-        },
-      });
-    } else if (/^\d+$/.test(match[0])) {
-      acceptToken(ctx, {
-        type: "subject",
-        value: {
-          type: "matchIndex",
-          key: Number(match[0]),
-        },
-      });
-    } else {
-      acceptToken(ctx, {
-        type: "subject",
-        value: {
-          type: "variable",
-          key: match[0],
-        },
-      });
-    }
-  });
-
-  lexer.rule(/\[.*?\]/, (ctx, match) => {
-    // Shallow array
-    acceptToken(ctx, { type: "argument", value: JSON.parse(match[0]) });
-  });
-
-  lexer.rule(/\{.*?\}/, (ctx, match) => {
-    // Shallow object
-    acceptToken(ctx, { type: "argument", value: JSON.parse(match[0]) });
-  });
-
-  lexer.rule(/('|"|`)(.*?)(?<!\\)\1/, (ctx, match) => {
-    const value = match[2].replace(
-      new RegExp(`\\\\${match[1]}`, "g"),
-      match[1]
-    );
-    acceptToken(ctx, { type: "argument", value });
-  });
-
-  lexer.rule(/(?:\+|-)?\d+(?:\d|_|\.)*/, (ctx, match) => {
-    // Number
-    acceptToken(ctx, { type: "argument", value: Number(match) });
-  });
-
-  lexer.rule(/\/(.+?)(?<!\\)\/([a-z]*)/, (ctx, match) => {
-    // Regex
-    acceptToken(ctx, { type: "argument", value: RegExp(match[1], match[2]) });
-  });
-
-  lexer.rule(/[a-zA-Z_$]+(?=\()/, (ctx, match) => {
-    acceptToken(ctx, { type: "methodName", value: match[0] });
-  });
-
-  lexer.rule(/_/, (ctx, match) => {
-    acceptToken(ctx, { type: "argumentPlaceholder" });
-  });
-
-  lexer.rule(/(?:[a-zA-Z])+/, (ctx, match) => {
-    const value = match[0] === "null" ? null : globalThis[match[0]];
-    acceptToken(ctx, { type: "argument", value });
-  });
-
-  // Argument brackets and delimiters
-  lexer.rule(/[(),]/, (ctx, match) => {
-    ctx.ignore();
-  });
-
-  lexer.rule(/:/, (ctx, match) => {
-    acceptToken(ctx, { type: "expressionSeparator" });
-  });
-
-  lexer.rule(/\s*/, (ctx, match) => {
-    ctx.ignore();
-  });
-
-  return lexer;
-}
 const lexer = createExpressionsLexer();
 
 export function compileExpression(input: string) {
