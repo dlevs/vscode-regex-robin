@@ -2,7 +2,6 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "testing.automaticallyOpenPeekView": "never",
   "vitest.exclude": [
     "**/out/**",
     "**/node_modules/**",
