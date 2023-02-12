@@ -33,20 +33,20 @@
   "devDependencies": {
     "@types/lodash": "^4.14.191",
     "@types/nearley": "^2.11.2",
-    "@types/node": "^18.11.18",
-    "@types/vscode": "^1.74.0",
-    "@typescript-eslint/eslint-plugin": "^5.47.1",
-    "@typescript-eslint/parser": "^5.47.1",
+    "@types/node": "^18.13.0",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^5.51.0",
+    "@typescript-eslint/parser": "^5.51.0",
     "deref": "^0.7.6",
-    "esbuild": "^0.17.3",
-    "eslint": "^8.31.0",
-    "eslint-config-prettier": "^8.5.0",
-    "prettier": "^2.8.1",
+    "esbuild": "^0.17.7",
+    "eslint": "^8.34.0",
+    "eslint-config-prettier": "^8.6.0",
+    "prettier": "^2.8.4",
     "ts-json-schema-generator": "^1.2.0",
     "ts-node": "^10.9.1",
-    "type-fest": "^3.5.0",
-    "typescript": "^4.9.4",
-    "vitest": "^0.26.2"
+    "type-fest": "^3.5.7",
+    "typescript": "^4.9.5",
+    "vitest": "^0.28.4"
   },
   "categories": [
     "Other"
