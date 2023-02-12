@@ -7,7 +7,8 @@ const moo = require('moo')
 
 const lexer = moo.states({
   main: {
-    '${': { match: '${', push: 'template' },
+    '${': { match: /(?<!\\)\$\{/, push: 'template' },
+    matchIndex: /(?<!\\)\$\d+/,
     text: { match: /[^{]+/, lineBreaks: true, value: x => x.replace(/\\$/, '$') },
   },
   template: {
@@ -46,6 +47,14 @@ function parseTemplate(d) {
     type: 'template',
     value: d[1],
     transforms: d[2].map(x => x[1])
+  }
+}
+
+function parseMatchIndex(d) {
+  return {
+    type: 'template',
+    value: d[0],
+    transforms: []
   }
 }
 
@@ -95,9 +104,11 @@ var grammar = {
     Lexer: lexer,
     ParserRules: [
     {"name": "main$ebnf$1$subexpression$1", "symbols": ["template"]},
+    {"name": "main$ebnf$1$subexpression$1", "symbols": ["matchIndex"]},
     {"name": "main$ebnf$1$subexpression$1", "symbols": ["text"]},
     {"name": "main$ebnf$1", "symbols": ["main$ebnf$1$subexpression$1"]},
     {"name": "main$ebnf$1$subexpression$2", "symbols": ["template"]},
+    {"name": "main$ebnf$1$subexpression$2", "symbols": ["matchIndex"]},
     {"name": "main$ebnf$1$subexpression$2", "symbols": ["text"]},
     {"name": "main$ebnf$1", "symbols": ["main$ebnf$1", "main$ebnf$1$subexpression$2"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "main", "symbols": ["main$ebnf$1"], "postprocess": (d) => d[0].map(x => x[0])},
@@ -106,6 +117,7 @@ var grammar = {
     {"name": "template$ebnf$1$subexpression$1", "symbols": [{"literal":":"}, "transform"]},
     {"name": "template$ebnf$1", "symbols": ["template$ebnf$1", "template$ebnf$1$subexpression$1"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "template", "symbols": [{"literal":"${"}, "subject", "template$ebnf$1", {"literal":"}"}], "postprocess": parseTemplate},
+    {"name": "matchIndex", "symbols": [(lexer.has("matchIndex") ? {type: "matchIndex"} : matchIndex)], "postprocess": parseMatchIndex},
     {"name": "subject", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": (d) => d[0].value},
     {"name": "transform", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier), {"literal":"("}, "arguments", {"literal":")"}], "postprocess": parseTransform},
     {"name": "arguments", "symbols": [], "postprocess": () => []},

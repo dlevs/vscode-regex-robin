@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import sortBy from "lodash/sortBy";
 import { DocumentMatch } from "./util/documentUtils";
-import { replaceMatches } from "./util/stringUtils";
 
 interface Entry {
   label: string;
@@ -89,10 +88,8 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
         if (!rule.tree) return [];
 
         return {
-          group: rule.tree.group.map((group) =>
-            replaceMatches(group, matchGroups).trim()
-          ),
-          label: replaceMatches(rule.tree.label, matchGroups).trim(),
+          group: rule.tree.group.map((group) => group(matchGroups).trim()),
+          label: rule.tree.label(matchGroups).trim(),
           target: documentUri && {
             uri: documentUri,
             range: matchGroups[0].range,

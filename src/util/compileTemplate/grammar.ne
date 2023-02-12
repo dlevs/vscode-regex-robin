@@ -1,10 +1,13 @@
 @{%
 const moo = require('moo')
 
+// TODO: Escape char
 const lexer = moo.states({
   main: {
-    '${': { match: '${', push: 'template' },
-    text: { match: /[^{]+/, lineBreaks: true, value: x => x.replace(/\\$/, '$') },
+    '${': { match: /(?<!\\)\$\{/, push: 'template' },
+    matchIndex: { match: /(?<!\\)\$\d+/, value: x => x.replace('$', '') },
+    // Match everything except $, unless it's escaped.
+    text: { match: /(?:[^$]|(?<=\\)\$)+/, lineBreaks: true, value: x => x.replaceAll('\\$', '$') },
   },
   template: {
     // States. Go one level deeper for every object / array started, so
@@ -40,11 +43,13 @@ const lexer = moo.states({
 @lexer lexer
 
 # TODO: Comment
-main -> (template | text):+ {% (d) => d[0].map(x => x[0]) %}
+main -> (template | matchIndex | text):+ {% (d) => d[0].map(x => x[0]) %}
 
 text -> %text {% (d) => ({ type: 'text', value: d[0].value }) %}
 
 template -> "${" subject (":" transform):* "}" {% parseTemplate %}
+
+matchIndex -> %matchIndex {% parseMatchIndex %}
 
 subject -> %number {% (d) => d[0].value %}
 
@@ -89,6 +94,14 @@ function parseTemplate(d) {
     type: 'template',
     value: d[1],
     transforms: d[2].map(x => x[1])
+  }
+}
+
+function parseMatchIndex(d) {
+  return {
+    type: 'template',
+    value: d[0],
+    transforms: []
   }
 }
 

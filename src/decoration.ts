@@ -5,7 +5,6 @@ import {
   DocumentMatch,
   decorationTypes,
 } from "./util/documentUtils";
-import { replaceMatches } from "./util/stringUtils";
 
 /**
  * Overwrites decorations (colors, inline elements, etc) with those
@@ -50,30 +49,24 @@ export function updateDecoration(
           return [];
         }
 
-        let inlineReplacementText = effect.inlineReplacement?.contentText;
+        const inlineReplacement = effect.inlineReplacement?.contentText;
+        let inlineReplacementText: string | undefined;
 
-        if (inlineReplacementText != null) {
+        if (inlineReplacement != null) {
           const showInlineReplacement = !selections.some((selection) =>
             rangesOverlapLines(group.range, selection)
           );
           if (showInlineReplacement) {
             // An inline replacement is defined, and the cursor is not on this match
             // currently. Show the replacement instead.
-            inlineReplacementText = replaceMatches(
-              inlineReplacementText,
-              matchGroups
-            );
+            inlineReplacementText = inlineReplacement(matchGroups);
 
             // Hide the original text, showing only the replacement.
             hideRanges.push(group.range);
-          } else {
-            inlineReplacementText = undefined;
           }
         }
 
-        const hoverMessage =
-          effect.hoverMessage &&
-          replaceMatches(effect.hoverMessage, matchGroups);
+        const hoverMessage = effect.hoverMessage?.(matchGroups);
 
         return {
           range: group.range,

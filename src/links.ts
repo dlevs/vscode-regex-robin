@@ -7,7 +7,6 @@ import {
   DocumentMatch,
   textToMinimalDocument,
 } from "./util/documentUtils";
-import { replaceMatches } from "./util/stringUtils";
 
 interface TerminalLink extends vscode.TerminalLink {
   target: string;
@@ -63,7 +62,7 @@ export class LinkProvider
           return [];
         }
 
-        let url = replaceMatches(effect.link, matchGroups);
+        let url = effect.link(matchGroups);
         const isRelativeURL = url.startsWith(".");
 
         if (isRelativeURL && documentUri) {
