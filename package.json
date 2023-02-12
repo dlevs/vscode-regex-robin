@@ -1792,9 +1792,5 @@
         }
       ]
     }
-  },
-  "workspaces": [
-    "packages/extension",
-    "packages/template-parser"
-  ]
+  }
 }
