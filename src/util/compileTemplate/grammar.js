@@ -8,8 +8,9 @@ const moo = require('moo')
 const lexer = moo.states({
   main: {
     '${': { match: /(?<!\\)\$\{/, push: 'template' },
-    matchIndex: /(?<!\\)\$\d+/,
-    text: { match: /[^{]+/, lineBreaks: true, value: x => x.replace(/\\$/, '$') },
+    matchIndex: { match: /(?<!\\)\$\d+/, value: x => x.replace('$', '') },
+    // Match everything except $, unless it's escaped.
+    text: { match: /(?:[^$]|(?<=\\)\$)+/, lineBreaks: true, value: x => x.replaceAll('\\$', '$') },
   },
   template: {
     // States. Go one level deeper for every object / array started, so
@@ -26,11 +27,18 @@ const lexer = moo.states({
     // Variable names, and literals
     identifier: /[a-zA-Z$_][a-zA-Z0-9$_]*/,
     number: /-?(?:[0-9]|[1-9][0-9]+)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?\b/,
-    string: new RegExp(`(?:${
-      ['"', "'", '`']
-        .map(char => `${char}.*?(?<!\\\\)${char}`)
-        .join('|')
-    })`),
+    string: {
+      match: new RegExp(`(?:${
+        ['"', "'", '`']
+          .map(char => `${char}.*?(?<!\\\\)${char}`)
+          .join('|')
+      })`),
+      value: x => {
+        const quote = x[0]
+        // Remove the quotes, and strip the escape character from escaped quotes.
+        return x.slice(1, -1).replaceAll(`\\${quote}`, quote)
+      }
+    },
     regex: /\/.+?(?<!\\)\/[a-z]*/,
     // Basic literals
     true: 'true',
@@ -53,7 +61,7 @@ function parseTemplate(d) {
 function parseMatchIndex(d) {
   return {
     type: 'template',
-    value: d[0],
+    value: d[0].value,
     transforms: []
   }
 }
@@ -146,7 +154,7 @@ var grammar = {
     {"name": "array$ebnf$1", "symbols": ["array$ebnf$1", "array$ebnf$1$subexpression$1"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "array", "symbols": [{"literal":"["}, "_", "value", "array$ebnf$1", "_", {"literal":"]"}], "postprocess": extractArray},
     {"name": "number", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": (d) => Number(d[0].value)},
-    {"name": "string", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess": d => d[0].value.slice(1, -1)},
+    {"name": "string", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess": id},
     {"name": "regex", "symbols": [(lexer.has("regex") ? {type: "regex"} : regex)], "postprocess": parseRegex},
     {"name": "pair", "symbols": ["key", "_", {"literal":":"}, "_", "value"], "postprocess": (d) => [d[0], d[4]]},
     {"name": "key", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": id},

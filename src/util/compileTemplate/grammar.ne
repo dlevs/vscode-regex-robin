@@ -1,7 +1,6 @@
 @{%
 const moo = require('moo')
 
-// TODO: Escape char
 const lexer = moo.states({
   main: {
     '${': { match: /(?<!\\)\$\{/, push: 'template' },
@@ -24,11 +23,18 @@ const lexer = moo.states({
     // Variable names, and literals
     identifier: /[a-zA-Z$_][a-zA-Z0-9$_]*/,
     number: /-?(?:[0-9]|[1-9][0-9]+)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?\b/,
-    string: new RegExp(`(?:${
-      ['"', "'", '`']
-        .map(char => `${char}.*?(?<!\\\\)${char}`)
-        .join('|')
-    })`),
+    string: {
+      match: new RegExp(`(?:${
+        ['"', "'", '`']
+          .map(char => `${char}.*?(?<!\\\\)${char}`)
+          .join('|')
+      })`),
+      value: x => {
+        const quote = x[0]
+        // Remove the quotes, and strip the escape character from escaped quotes.
+        return x.slice(1, -1).replaceAll(`\\${quote}`, quote)
+      }
+    },
     regex: /\/.+?(?<!\\)\/[a-z]*/,
     // Basic literals
     true: 'true',
@@ -78,7 +84,7 @@ array -> "[" _ "]" {% () => [] %}
 
 number -> %number {% (d) => Number(d[0].value) %}
 
-string -> %string {% d => d[0].value.slice(1, -1) %}
+string -> %string {% id %}
 
 regex -> %regex {% parseRegex %}
 
@@ -100,7 +106,7 @@ function parseTemplate(d) {
 function parseMatchIndex(d) {
   return {
     type: 'template',
-    value: d[0],
+    value: d[0].value,
     transforms: []
   }
 }

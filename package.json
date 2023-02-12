@@ -20,6 +20,7 @@
     "esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
     "watch": "npm run esbuild -- --sourcemap --watch",
     "lint": "eslint . --ext .ts,.tsx",
+    "pretest": "npm run build:grammar",
     "test": "npm run test:unit && npm run test:compile",
     "test:unit": "vitest --run src",
     "test:compile": "tsc",
