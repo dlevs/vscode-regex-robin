@@ -13,26 +13,22 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run build && npm run lint && npm run test",
-    "build": "npm run build:grammar && npm run build:extension && npm run build:config",
+    "build": "npm run build:extension && npm run build:config",
     "build:extension": "npm run esbuild -- --minify",
     "build:config": "ts-node ./src/scripts/generateConfigSchema.ts",
-    "build:grammar": "nearleyc src/util/compileTemplate/grammar.ne --out ./src/util/compileTemplate/grammar.js",
     "esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
     "watch": "npm run esbuild -- --sourcemap --watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "pretest": "npm run build:grammar",
     "test": "npm run test:unit && npm run test:compile",
     "test:unit": "vitest --run src",
     "test:compile": "tsc",
     "test:watch": "vitest src"
   },
   "dependencies": {
-    "lodash": "^4.17.21",
-    "nearley": "^2.20.1"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",
-    "@types/nearley": "^2.11.2",
     "@types/node": "^18.13.0",
     "@types/vscode": "^1.75.0",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
