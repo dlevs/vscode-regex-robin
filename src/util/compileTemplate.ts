@@ -1,5 +1,7 @@
+import path from "path";
+import * as vscode from "vscode";
 import type { CompiledTemplate } from "../types/config";
-import { DocumentMatchGroup } from "./documentUtils";
+import { DocumentMatch, DocumentMatchGroup } from "./documentUtils";
 
 type State = "text" | "expression";
 
@@ -8,7 +10,16 @@ interface TemplateNode {
   value: string;
 }
 
-export function compileTemplate(template: string): CompiledTemplate {
+export function compileTemplate<T extends string | undefined>(
+  template: T
+): T extends string ? CompiledTemplate : undefined;
+export function compileTemplate(
+  template?: string
+): CompiledTemplate | undefined {
+  if (template == null) {
+    return template;
+  }
+
   const components = parseTemplate(template).map(compileTemplateComponent);
 
   return function populateTemplate(match) {
@@ -23,13 +34,18 @@ class MatchString extends String {
   }
 
   get lineNumber() {
-    return this.group?.range.start.line ?? -1;
+    return this.group ? this.group.range.start.line + 1 : -1;
   }
 
   get columnNumber() {
-    return this.group?.range.start.character ?? -1;
+    return this.group ? this.group.range.start.character + 1 : -1;
   }
 }
+
+const dummyArgs = getMatchArgs({
+  matchGroups: [{ match: "", range: new vscode.Range(0, 0, 0, 0) }],
+  documentUri: vscode.Uri.file(""),
+});
 
 function compileTemplateComponent(node: TemplateNode): CompiledTemplate {
   switch (node.type) {
@@ -37,37 +53,14 @@ function compileTemplateComponent(node: TemplateNode): CompiledTemplate {
       return () => node.value;
     case "expression": {
       const template = Function(
-        "$0",
-        "$1",
-        "$2",
-        "$3",
-        "$4",
-        "$5",
-        "$6",
-        "$7",
-        "$8",
-        "$9",
-        "lineNumber",
-        `return ${node.value}`
+        ...Object.keys(dummyArgs),
+        `try { return ${node.value} } catch (err) { return 'ERROR' }`
       );
       return (match) => {
-        const $0 = new MatchString(match.matchGroups[0]);
-
-        const args = [
-          $0,
-          new MatchString(match.matchGroups[1]),
-          new MatchString(match.matchGroups[2]),
-          new MatchString(match.matchGroups[3]),
-          new MatchString(match.matchGroups[4]),
-          new MatchString(match.matchGroups[5]),
-          new MatchString(match.matchGroups[6]),
-          new MatchString(match.matchGroups[7]),
-          new MatchString(match.matchGroups[8]),
-          new MatchString(match.matchGroups[9]),
-          $0.lineNumber,
-          // $0.columnNumber,
-        ];
-        return template(...args);
+        // TODO: Tidy
+        // TODO: Works in multi-workspace project?
+        const args = getMatchArgs(match);
+        return template(...Object.values(args));
       };
     }
     default:
@@ -76,6 +69,60 @@ function compileTemplateComponent(node: TemplateNode): CompiledTemplate {
 }
 
 const delimiters = ["'", '"', "`", "/"] as const;
+
+function getMatchArgs(
+  match: Pick<DocumentMatch, "documentUri" | "matchGroups">
+) {
+  const workspaces = vscode.workspace.workspaceFolders;
+  const workspace = workspaces?.[0] ?? null;
+  const absoluteFilePath = match.documentUri?.fsPath ?? "";
+  const activeWorkspace = workspace;
+  // TODO: path.relative?
+  const relativeFilePath = absoluteFilePath
+    .replace(workspace?.uri.fsPath ?? "", "")
+    .substring(path.sep.length);
+  const parsedPath = path.parse(absoluteFilePath);
+  const $0 = new MatchString(match.matchGroups[0]);
+
+  return {
+    $0,
+    $1: new MatchString(match.matchGroups[1]),
+    $2: new MatchString(match.matchGroups[2]),
+    $3: new MatchString(match.matchGroups[3]),
+    $4: new MatchString(match.matchGroups[4]),
+    $5: new MatchString(match.matchGroups[5]),
+    $6: new MatchString(match.matchGroups[6]),
+    $7: new MatchString(match.matchGroups[7]),
+    $8: new MatchString(match.matchGroups[8]),
+    $9: new MatchString(match.matchGroups[9]),
+    cwd: parsedPath.dir,
+    file: absoluteFilePath,
+    fileBasename: parsedPath.base,
+    fileBasenameNoExtension: parsedPath.name,
+    fileDirname: parsedPath.dir.substring(
+      parsedPath.dir.lastIndexOf(path.sep) + 1
+    ),
+    fileExtname: parsedPath.ext,
+    fileWorkspaceFolder: activeWorkspace?.uri.fsPath ?? "",
+    lineNumber: $0.lineNumber,
+    pathSeparator: path.sep,
+    relativeFile: relativeFilePath,
+    relativeFileDirname: relativeFilePath.substring(
+      0,
+      relativeFilePath.lastIndexOf(path.sep)
+    ),
+    // TODO: This is heavy? Use some kind of deferred evaluation?
+    selectedText:
+      vscode.window.activeTextEditor?.document.getText(
+        new vscode.Range(
+          vscode.window.activeTextEditor.selection.start,
+          vscode.window.activeTextEditor.selection.end
+        )
+      ) ?? "",
+    workspaceFolder: workspace?.uri.fsPath ?? "",
+    workspaceFolderBasename: workspace?.name ?? "",
+  } satisfies Record<string, string | number | MatchString>;
+}
 
 /**
  * Parse a string containing template expressions into an array of nodes.

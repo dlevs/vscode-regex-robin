@@ -95,7 +95,7 @@
           { "color": "#E6DB74", "hoverMessage": "$0" },
           {
             "group": 1,
-            "inlineReplacement": "..."
+            "inlineReplacement": "...${process.env.HOME}"
           }
         ]
       },
@@ -107,7 +107,8 @@
           {
             "color": "#AE81FF",
             "borderRadius": "3px",
-            "gutterIconPath": "/Users/daniellevett/Projects/vscode-regex-robin/assets/icon.png",
+            // TODO: Make this work:
+            "gutterIconPath": "${workspaceFolder}/assets/icon.png",
             "gutterIconSize": "contain",
             "inlineReplacement": {
               "contentText": "👀 $1",

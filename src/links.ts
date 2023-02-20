@@ -54,19 +54,19 @@ export class LinkProvider
     matches: DocumentMatch[],
     transform: (params: { range: vscode.Range; target: vscode.Uri }) => T
   ) {
-    return matches.flatMap(({ matchGroups, rule, documentUri }) => {
-      return rule.editor.flatMap((effect) => {
-        const group = matchGroups[effect.group];
+    return matches.flatMap((match) => {
+      return match.rule.editor.flatMap((effect) => {
+        const group = match.matchGroups[effect.group];
 
         if (!effect.link || !group) {
           return [];
         }
 
-        let url = effect.link(matchGroups);
+        let url = effect.link(match);
         const isRelativeURL = url.startsWith(".");
 
-        if (isRelativeURL && documentUri) {
-          url = path.join(path.dirname(documentUri.path), url);
+        if (isRelativeURL && match.documentUri) {
+          url = path.join(path.dirname(match.documentUri.path), url);
         }
 
         return transform({

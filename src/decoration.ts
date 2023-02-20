@@ -26,9 +26,9 @@ export function updateDecoration(
   if (!editor) return;
 
   // Group matches by decoration
-  const allEffects = matches.flatMap(({ rule, matchGroups }) => {
-    return rule.editor.map((effect) => {
-      return { effect, matchGroups };
+  const allEffects = matches.flatMap((match) => {
+    return match.rule.editor.map((effect) => {
+      return { effect, match };
     });
   });
   const decorationMap = groupByMap(
@@ -42,8 +42,8 @@ export function updateDecoration(
   for (const decoration of ruleDecorations) {
     const relevantMatches = decorationMap.get(decoration) ?? [];
     const ranges = relevantMatches.flatMap(
-      ({ matchGroups, effect }): vscode.DecorationOptions | [] => {
-        const group = matchGroups[effect.group];
+      ({ match, effect }): vscode.DecorationOptions | [] => {
+        const group = match.matchGroups[effect.group];
 
         if (!group) {
           return [];
@@ -59,14 +59,14 @@ export function updateDecoration(
           if (showInlineReplacement) {
             // An inline replacement is defined, and the cursor is not on this match
             // currently. Show the replacement instead.
-            inlineReplacementText = inlineReplacement(matchGroups);
+            inlineReplacementText = inlineReplacement(match);
 
             // Hide the original text, showing only the replacement.
             hideRanges.push(group.range);
           }
         }
 
-        const hoverMessage = effect.hoverMessage?.(matchGroups);
+        const hoverMessage = effect.hoverMessage?.(match);
 
         return {
           range: group.range,
