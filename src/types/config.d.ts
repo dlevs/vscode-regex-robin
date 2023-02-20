@@ -1,4 +1,5 @@
 import type * as vscode from "vscode";
+import type { DocumentMatch } from "../util/documentUtils";
 
 /**
  * The config schema, as VSCode expects it to be defined in package.json.
@@ -70,9 +71,7 @@ export type InlineReplacement = Omit<InlineReplacementInput, "contentText"> & {
   contentText: CompiledTemplate;
 };
 
-export type CompiledTemplate = (
-  matches: ({ match: string } | null)[]
-) => string;
+export type CompiledTemplate = (match: DocumentMatch) => string;
 
 /**
  * Config, as defined by the user in their settings.

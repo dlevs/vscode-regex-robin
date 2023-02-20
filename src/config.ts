@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import orderBy from "lodash/orderBy";
 import { decorationTypes } from "./util/documentUtils";
-import { compileTemplate as compileTemplateRaw } from "./util/compileTemplate";
+import { compileTemplate } from "./util/compileTemplate";
 import type {
   Config,
   ConfigInput,
@@ -13,7 +13,6 @@ import type {
   EditorEffectInput,
   RuleInput,
   InlineReplacementInput,
-  CompiledTemplate,
 } from "./types/config";
 
 export const EXTENSION_NAME = "regexrobin";
@@ -247,29 +246,6 @@ function processEditorEffects(effects: EditorEffectInput[]) {
       };
     }
   );
-}
-
-/**
- * Compile templates, and handle taking the more advanced "match" input, which
- * is an array of objects instead of an array of strings.
- *
- * Also accepts `undefined`, returning `undefined`, for convenience with optional
- * properties.
- */
-function compileTemplate<T extends string | undefined>(
-  template: T
-): T extends string ? CompiledTemplate : undefined;
-function compileTemplate(template?: string): CompiledTemplate | void {
-  if (template == null) {
-    return undefined;
-  }
-
-  const compiled = compileTemplateRaw(template);
-
-  return function populateTemplate(matches) {
-    const mapped = matches.map((group) => (group == null ? "" : group.match));
-    return compiled(mapped);
-  };
 }
 
 function filterOutWithError(message: string): never[] {

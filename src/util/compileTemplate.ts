@@ -1,21 +1,37 @@
+import type { CompiledTemplate } from "../types/config";
+import { DocumentMatchGroup } from "./documentUtils";
+
 type State = "text" | "expression";
-type MatchProcessor = (matches: string[]) => string;
 
 interface TemplateNode {
   type: State;
   value: string;
 }
 
-export function compileTemplate(template: string) {
-  const nodes = parseTemplate(template);
-  const matchProcessors = nodes.map(processNode);
+export function compileTemplate(template: string): CompiledTemplate {
+  const components = parseTemplate(template).map(compileTemplateComponent);
 
-  return function populateTemplate(matches: string[]) {
-    return matchProcessors.map((processor) => processor(matches)).join("");
+  return function populateTemplate(match) {
+    return components.map((process) => process(match)).join("");
   };
 }
 
-function processNode(node: TemplateNode): MatchProcessor {
+// TODO: Just use this everywhere?
+class MatchString extends String {
+  constructor(private group?: DocumentMatchGroup | null) {
+    super(group?.match ?? "");
+  }
+
+  get lineNumber() {
+    return this.group?.range.start.line ?? -1;
+  }
+
+  get columnNumber() {
+    return this.group?.range.start.character ?? -1;
+  }
+}
+
+function compileTemplateComponent(node: TemplateNode): CompiledTemplate {
   switch (node.type) {
     case "text":
       return () => node.value;
@@ -34,20 +50,22 @@ function processNode(node: TemplateNode): MatchProcessor {
         "lineNumber",
         `return ${node.value}`
       );
-      console.log(node.value);
-      return (matches) => {
+      return (match) => {
+        const $0 = new MatchString(match.matchGroups[0]);
+
         const args = [
-          matches[0] || "",
-          matches[1] || "",
-          matches[2] || "",
-          matches[3] || "",
-          matches[4] || "",
-          matches[5] || "",
-          matches[6] || "",
-          matches[7] || "",
-          matches[8] || "",
-          matches[9] || "",
-          10, // TODO:
+          $0,
+          new MatchString(match.matchGroups[1]),
+          new MatchString(match.matchGroups[2]),
+          new MatchString(match.matchGroups[3]),
+          new MatchString(match.matchGroups[4]),
+          new MatchString(match.matchGroups[5]),
+          new MatchString(match.matchGroups[6]),
+          new MatchString(match.matchGroups[7]),
+          new MatchString(match.matchGroups[8]),
+          new MatchString(match.matchGroups[9]),
+          $0.lineNumber,
+          // $0.columnNumber,
         ];
         return template(...args);
       };
