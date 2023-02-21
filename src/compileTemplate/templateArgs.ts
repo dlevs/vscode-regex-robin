@@ -56,11 +56,9 @@ function getMatchArgMap(match: Pick<DocumentMatch, "matchGroups">): ArgMap {
 
 function getDocumentArgMap(match: Pick<DocumentMatch, "documentUri">): ArgMap {
   const workspace = vscode.workspace.workspaceFolders?.[0] ?? null;
+  const workspaceFilePath = workspace?.uri.fsPath ?? "";
   const absoluteFilePath = match.documentUri?.fsPath ?? "";
-  // TODO: path.relative?
-  const relativeFilePath = absoluteFilePath
-    .replace(workspace?.uri.fsPath ?? "", "")
-    .substring(path.sep.length);
+  const relativeFilePath = path.relative(workspaceFilePath, absoluteFilePath);
   const { base, name, dir, ext } = path.parse(absoluteFilePath);
 
   return {
@@ -68,19 +66,16 @@ function getDocumentArgMap(match: Pick<DocumentMatch, "documentUri">): ArgMap {
     file: absoluteFilePath,
     fileBasename: base,
     fileBasenameNoExtension: name,
-    fileDirname: dir.substring(0, dir.lastIndexOf(path.sep)),
+    fileDirname: path.dirname(absoluteFilePath),
     fileExtname: ext,
 
     // Relative file path
     relativeFile: relativeFilePath,
-    relativeFileDirname: relativeFilePath.substring(
-      0,
-      relativeFilePath.lastIndexOf(path.sep)
-    ),
+    relativeFileDirname: path.dirname(relativeFilePath),
 
     // Workspace
-    fileWorkspaceFolder: workspace?.uri.fsPath ?? "",
-    workspaceFolder: workspace?.uri.fsPath ?? "",
+    fileWorkspaceFolder: workspaceFilePath,
+    workspaceFolder: workspaceFilePath,
     workspaceFolderBasename: workspace?.name ?? "",
 
     // Misc
