@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import orderBy from "lodash/orderBy";
 import { decorationTypes } from "./util/documentUtils";
-import { compileTemplate } from "./util/compileTemplate";
+import { compileTemplate } from "./compileTemplate";
 import type {
   Config,
   ConfigInput,

@@ -16,7 +16,7 @@ import { DocumentMatchGroup } from "../util/documentUtils";
  * ```
  */
 export class MatchString extends String {
-  constructor(private group?: DocumentMatchGroup | null) {
+  constructor(private group?: DocumentMatchGroup | null | undefined) {
     super(group?.match ?? "");
   }
 

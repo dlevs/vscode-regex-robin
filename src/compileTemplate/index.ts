@@ -24,14 +24,21 @@ function compileTemplateComponent(node: TemplateNode): CompiledTemplate {
     case "text":
       return () => node.value;
     case "expression": {
-      const template = Function(
-        ...argNames,
-        `try { return ${node.value} } catch (err) { return 'ERROR' }`
-      );
+      let template: (...args: unknown[]) => string;
+      try {
+        template = Function(...argNames, `return ${node.value}`) as any;
+      } catch (err) {
+        template = () => `[ERROR: ${(err as Error).message}]`;
+      }
       return (match) => {
-        // TODO: Works in multi-workspace project?
-        const args = getArgs(match);
-        return template(...args);
+        try {
+          // TODO: Works in multi-workspace project?
+          const args = getArgs(match);
+          return template(...args);
+        } catch (err) {
+          console.log(err);
+          return `[ERROR: ${(err as Error).message}]`;
+        }
       };
     }
     default:
