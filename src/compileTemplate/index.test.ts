@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { Position, Range, Uri } from "vscode";
-import { compileTemplate, parseTemplate } from "./compileTemplate";
+import { compileTemplate, parseTemplate } from ".";
 
 vi.mock("vscode");
 
