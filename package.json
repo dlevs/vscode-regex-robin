@@ -6,7 +6,7 @@
   "publisher": "DanLevett",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.75.1"
   },
   "repository": {
     "url": "https://github.com/dlevs/vscode-regex-robin"
