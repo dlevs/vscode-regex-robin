@@ -18,8 +18,6 @@ const delimiters = ["'", '"', "`", "/"] as const;
  * Most of the logic here is to handle nested expressions, objects and strings
  * so that we don't terminate the expression too early in templates like:
  * - "Foo ${'{bar}'}"
- *
- *
  */
 export function parseTemplate(template: string): TemplateNode[] {
   let cumulative = "";

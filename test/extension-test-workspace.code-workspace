@@ -95,7 +95,7 @@
           { "color": "#E6DB74", "hoverMessage": "$0" },
           {
             "group": 1,
-            "inlineReplacement": "...${process.env.HOME}"
+            "inlineReplacement": "..."
           }
         ]
       },
@@ -107,7 +107,9 @@
           {
             "color": "#AE81FF",
             "borderRadius": "3px",
-            // TODO: Make this work:
+            // This variable replacement does not work because the VSCode API does not make
+            // dynamic styles (which change extremely frequently) easy, suggesting it's probably
+            // a bad idea; like creating a bunch of CSS classes that can change on every keystroke.
             "gutterIconPath": "${workspaceFolder}/assets/icon.png",
             "gutterIconSize": "contain",
             "inlineReplacement": {
