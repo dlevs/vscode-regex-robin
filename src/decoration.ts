@@ -5,7 +5,6 @@ import {
   DocumentMatch,
   decorationTypes,
 } from "./util/documentUtils";
-import { replaceMatches } from "./util/stringUtils";
 
 /**
  * Overwrites decorations (colors, inline elements, etc) with those
@@ -27,9 +26,9 @@ export function updateDecoration(
   if (!editor) return;
 
   // Group matches by decoration
-  const allEffects = matches.flatMap(({ rule, matchGroups }) => {
-    return rule.editor.map((effect) => {
-      return { effect, matchGroups };
+  const allEffects = matches.flatMap((match) => {
+    return match.rule.editor.map((effect) => {
+      return { effect, match };
     });
   });
   const decorationMap = groupByMap(
@@ -43,37 +42,31 @@ export function updateDecoration(
   for (const decoration of ruleDecorations) {
     const relevantMatches = decorationMap.get(decoration) ?? [];
     const ranges = relevantMatches.flatMap(
-      ({ matchGroups, effect }): vscode.DecorationOptions | [] => {
-        const group = matchGroups[effect.group];
+      ({ match, effect }): vscode.DecorationOptions | [] => {
+        const group = match.matchGroups[effect.group];
 
         if (!group) {
           return [];
         }
 
-        let inlineReplacementText = effect.inlineReplacement?.contentText;
+        const inlineReplacement = effect.inlineReplacement?.contentText;
+        let inlineReplacementText: string | undefined;
 
-        if (inlineReplacementText != null) {
+        if (inlineReplacement != null) {
           const showInlineReplacement = !selections.some((selection) =>
             rangesOverlapLines(group.range, selection)
           );
           if (showInlineReplacement) {
             // An inline replacement is defined, and the cursor is not on this match
             // currently. Show the replacement instead.
-            inlineReplacementText = replaceMatches(
-              inlineReplacementText,
-              matchGroups
-            );
+            inlineReplacementText = inlineReplacement(match);
 
             // Hide the original text, showing only the replacement.
             hideRanges.push(group.range);
-          } else {
-            inlineReplacementText = undefined;
           }
         }
 
-        const hoverMessage =
-          effect.hoverMessage &&
-          replaceMatches(effect.hoverMessage, matchGroups);
+        const hoverMessage = effect.hoverMessage?.(match);
 
         return {
           range: group.range,

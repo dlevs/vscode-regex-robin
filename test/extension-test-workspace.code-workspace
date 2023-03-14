@@ -107,7 +107,10 @@
           {
             "color": "#AE81FF",
             "borderRadius": "3px",
-            "gutterIconPath": "/Users/daniellevett/Projects/vscode-regex-robin/assets/icon.png",
+            // This variable replacement does not work because the VSCode API does not make
+            // dynamic styles (which change extremely frequently) easy, suggesting it's probably
+            // a bad idea; like creating a bunch of CSS classes that can change on every keystroke.
+            "gutterIconPath": "${workspaceFolder}/assets/icon.png",
             "gutterIconSize": "contain",
             "inlineReplacement": {
               "contentText": "👀 $1",

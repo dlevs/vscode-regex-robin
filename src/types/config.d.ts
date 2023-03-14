@@ -1,4 +1,5 @@
 import type * as vscode from "vscode";
+import type { DocumentMatch } from "../util/documentUtils";
 
 /**
  * The config schema, as VSCode expects it to be defined in package.json.
@@ -47,15 +48,30 @@ export interface EditorEffect extends EditorEffectInput {
    * Generated on init - not from config.
    */
   decoration: vscode.TextEditorDecorationType;
+  /**
+   * A link to open when the relevant match is clicked.
+   *
+   * This has been compiled into a `CompiledTemplate`.
+   */
+  link?: CompiledTemplate;
+  /**
+   * Text to display when hovering over the relevant match.
+   *
+   * This has been compiled into a `CompiledTemplate`.
+   */
+  hoverMessage?: CompiledTemplate;
 }
 
 interface TreeParams extends TreeParamsInput {
-  group: string[];
-  label: string;
+  group: CompiledTemplate[];
+  label: CompiledTemplate;
 }
 
-export type InlineReplacement =
-  vscode.ThemableDecorationAttachmentRenderOptions;
+export type InlineReplacement = Omit<InlineReplacementInput, "contentText"> & {
+  contentText: CompiledTemplate;
+};
+
+export type CompiledTemplate = (match: DocumentMatch) => string;
 
 /**
  * Config, as defined by the user in their settings.
@@ -261,5 +277,7 @@ export interface EditorEffectInput extends vscode.DecorationRenderOptions {
    *
    * The substitution is defined in the "contextText" property.
    */
-  inlineReplacement?: string | InlineReplacement;
+  inlineReplacement?: string | InlineReplacementInput;
 }
+
+type InlineReplacementInput = vscode.ThemableDecorationAttachmentRenderOptions;

@@ -33,7 +33,7 @@ export type DocumentMatch = {
   documentUri?: vscode.Uri;
 };
 
-type DocumentMatchGroup = {
+export type DocumentMatchGroup = {
   match: string;
   range: vscode.Range;
 };

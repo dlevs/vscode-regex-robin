@@ -11,8 +11,9 @@
         "${workspaceRoot}/test/extension-test-workspace.code-workspace"
       ],
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/out/**/*.js"],
-      "preLaunchTask": "npm: watch"
+      "outFiles": ["${workspaceRoot}/out/**/*.js"]
+      // TODO: See why this is not working. The extension fails to launch the "watch" tasl is cancelled.
+      // "preLaunchTask": "npm: watch"
     }
   ]
 }

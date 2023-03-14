@@ -36,3 +36,4 @@ There are also comments inline above each rule in the workspace config, so the f
    1. Make it possible to subgroup those things by part of the match, e.g. for hashtags and @mentions
 3. Make it work for multi-root workspaces
 4. Test and document overlapping styles (not nested, but overlapping)
+5. Fix `npm watch` not running upon launching extension in debug mode

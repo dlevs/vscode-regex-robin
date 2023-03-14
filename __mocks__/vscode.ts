@@ -4,12 +4,6 @@
 //
 // Any exports used by this extension must be mocked here.
 
-export const Uri = {
-  parse() {
-    return "Mock Uri";
-  },
-};
-
 export const window = {
   createTextEditorDecorationType() {
     return "Mock TextEditorDecorationType";
@@ -18,6 +12,25 @@ export const window = {
     return "Mock showErrorMessage";
   },
 };
+
+export const workspace = {
+  workspaceFolders: [],
+};
+
+export class Workspace {
+  static get workspaceFolders() {
+    return [];
+  }
+}
+
+export class Uri {
+  static parse() {
+    return new Uri();
+  }
+  static file() {
+    return new Uri();
+  }
+}
 
 export class Position {
   constructor(public line: number, public character: number) {}

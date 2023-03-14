@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import orderBy from "lodash/orderBy";
 import { decorationTypes } from "./util/documentUtils";
+import { compileTemplate } from "./compileTemplate";
 import type {
   Config,
   ConfigInput,
@@ -11,6 +12,7 @@ import type {
   Rule,
   EditorEffectInput,
   RuleInput,
+  InlineReplacementInput,
 } from "./types/config";
 
 export const EXTENSION_NAME = "regexrobin";
@@ -40,8 +42,8 @@ export function getConfig(): Config {
 
     const shared = {
       tree: rule.tree && {
-        group,
-        label: rule.tree.label ?? "$0",
+        group: group.map(compileTemplate),
+        label: compileTemplate(rule.tree.label ?? "$0"),
       },
       languages,
       editor: processEditorEffects(editor),
@@ -186,18 +188,27 @@ function processEditorEffects(effects: EditorEffectInput[]) {
       ...style
     } = effect;
 
-    const inlineReplacement: InlineReplacement | undefined =
+    const inlineReplacementObj: InlineReplacementInput | undefined =
       inlineReplacementInput == null
         ? undefined
         : typeof inlineReplacementInput === "string"
         ? { contentText: inlineReplacementInput }
-        : { ...inlineReplacementInput };
+        : { contentText: "", ...inlineReplacementInput };
 
-    // Replace empty strings with a zero-width space so that the text
-    // gets hidden if user configures it. `""` by itself does not hide
-    // the original text.
-    if (inlineReplacement?.contentText === "") {
-      inlineReplacement.contentText = "\u200B";
+    let inlineReplacement: InlineReplacement | undefined;
+
+    if (typeof inlineReplacementObj?.contentText === "string") {
+      // Replace empty strings with a zero-width space so that the text
+      // gets hidden if user configures it. `""` by itself does not hide
+      // the original text.
+      if (inlineReplacementObj.contentText === "") {
+        inlineReplacementObj.contentText = "\u200B";
+      }
+
+      inlineReplacement = {
+        ...inlineReplacementObj,
+        contentText: compileTemplate(inlineReplacementObj.contentText),
+      };
     }
 
     return {
@@ -224,6 +235,8 @@ function processEditorEffects(effects: EditorEffectInput[]) {
     ({ style, ...effect }): EditorEffect | never[] => {
       return {
         ...effect,
+        link: compileTemplate(effect.link),
+        hoverMessage: compileTemplate(effect.hoverMessage),
         // ❗️ Warning! Do not refactor! ❗️
         // Decorations must be created in the correct order for the correct precedence
         // to apply. See the comment for `sortedEffects`, above.

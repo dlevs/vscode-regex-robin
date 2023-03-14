@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import sortBy from "lodash/sortBy";
 import { DocumentMatch } from "./util/documentUtils";
-import { replaceMatches } from "./util/stringUtils";
 
 interface Entry {
   label: string;
@@ -84,22 +83,18 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
     // defining where it should ultimately end up in the tree.
     //
     // Example of `group`: ["TODOs", "Urgent"]
-    const entriesFlat = matches.flatMap(
-      ({ rule, matchGroups, documentUri }) => {
-        if (!rule.tree) return [];
+    const entriesFlat = matches.flatMap((match) => {
+      if (!match.rule.tree) return [];
 
-        return {
-          group: rule.tree.group.map((group) =>
-            replaceMatches(group, matchGroups).trim()
-          ),
-          label: replaceMatches(rule.tree.label, matchGroups).trim(),
-          target: documentUri && {
-            uri: documentUri,
-            range: matchGroups[0].range,
-          },
-        };
-      }
-    );
+      return {
+        group: match.rule.tree.group.map((group) => group(match).trim()),
+        label: match.rule.tree.label(match).trim(),
+        target: match.documentUri && {
+          uri: match.documentUri,
+          range: match.matchGroups[0].range,
+        },
+      };
+    });
 
     // Put the entries into a nested tree structure.
     const tree: DirectoryTree = { items: [], directories: {} };

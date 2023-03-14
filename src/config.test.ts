@@ -12,7 +12,7 @@ test("processRegexFlags()", () => {
   expect(processRegexFlags({ ignoreCase: false })).toBe("dg");
   expect(processRegexFlags({ multiline: true })).toBe("mdg");
   expect(processRegexFlags({ unicode: true })).toBe("udg");
-  // A random sting is returned as-is (plus the missing "d" flag), allowing
+  // A random string is returned as-is (plus the missing "d" flag), allowing
   // users to pass in their own flags in future if there are new ones, with
   // no plugin update required.
   expect(processRegexFlags("anything")).toBe("anythingd");
