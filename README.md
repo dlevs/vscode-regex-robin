@@ -101,6 +101,14 @@ just works like this by default. -->
 
 If you have "Word wrap" enabled, any extra lines created by long text being wrapped will still be visible when using the `inlineReplacement` feature to replace it with something shorter, even if the replacement fits on one line.
 
+## Troubleshooting
+
+### Extension fails to load with error "Invalid flags: dg"
+
+This error has been observed when another installed extension polyfills the `String.prototype.matchAll` function with a non-standard implementation, breaking Regex Robin. This is a [known issue with the popular extension "Todo Tree"](https://github.com/dlevs/vscode-regex-robin/issues/6).
+
+The solution is to disable the extension that is causing the issue. VSCode's ["Extension Bisect" feature](https://code.visualstudio.com/blogs/2021/02/16/extension-bisect) can help you find the offending extension.
+
 ## The logo
 
 The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
