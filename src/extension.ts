@@ -6,7 +6,7 @@ import { EXTENSION_NAME, getConfig } from "./config";
 import { TreeProvider } from "./tree";
 import { getDocumentMatches } from "./util/documentUtils";
 
-const treeProvider = new TreeProvider([]);
+const treeProvider = new TreeProvider();
 
 export function activate(context: vscode.ExtensionContext): void {
   let app: undefined | vscode.Disposable;
@@ -45,6 +45,7 @@ function initFromConfig() {
     { leading: true, trailing: true }
   );
 
+  treeProvider.updateConfig(config.tree);
   update();
 
   return vscode.Disposable.from(

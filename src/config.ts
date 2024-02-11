@@ -18,8 +18,12 @@ import type {
 export const EXTENSION_NAME = "regexrobin";
 
 export function getConfig(): Config {
-  const { rules = [], templates = {} }: ConfigInput =
-    vscode.workspace.getConfiguration().get(EXTENSION_NAME) ?? {};
+  const {
+    rules = [],
+    templates = {},
+    tree,
+  }: ConfigInput = vscode.workspace.getConfiguration().get(EXTENSION_NAME) ??
+  {};
 
   // The first-applied style "wins" when two styles apply to the same range.
   // As a human, the intuitive behavior is that rules that apply later in
@@ -77,6 +81,10 @@ export function getConfig(): Config {
   return {
     rules: rulesOutput,
     ruleDecorations: Array.from(ruleDecorations),
+    tree: {
+      ...DEFAULT_TREE_CONFIG,
+      ...tree,
+    },
     dispose: () => {
       for (const decoration of ruleDecorations) {
         decoration.dispose();
@@ -252,3 +260,9 @@ function filterOutWithError(message: string): never[] {
   vscode.window.showErrorMessage(message);
   return [];
 }
+
+export const DEFAULT_TREE_CONFIG = {
+  expanded: false,
+  sort: true,
+  includeFilenames: false,
+};

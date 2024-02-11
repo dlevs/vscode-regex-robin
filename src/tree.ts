@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import sortBy from "lodash/sortBy";
 import { DocumentMatch } from "./util/documentUtils";
+import { Config } from "./types/config";
+import { DEFAULT_TREE_CONFIG } from "./config";
 
 interface Entry {
   label: string;
@@ -36,14 +38,21 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
   readonly onDidChangeTreeData: vscode.Event<Entry | undefined> =
     this._onDidChangeTreeData.event;
 
+  private config: Config["tree"];
   private tree: Entry[];
 
-  constructor(matches: DocumentMatch[]) {
-    this.tree = this.mapMatchesToEntries(matches);
+  constructor() {
+    this.config = DEFAULT_TREE_CONFIG;
+    this.tree = this.mapMatchesToEntries([]);
   }
 
   updateMatches(matches: DocumentMatch[]) {
     this.tree = this.mapMatchesToEntries(matches);
+    this.refresh();
+  }
+
+  updateConfig(config: Config["tree"]) {
+    this.config = config;
     this.refresh();
   }
 
@@ -56,14 +65,20 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
   }
 
   getTreeItem(entry: Entry): vscode.TreeItem {
+    const description = this.config.includeFilenames
+      ? entry.target?.uri?.toString(true).split("/").pop()
+      : undefined;
+
+    const collapsibleState = !entry.children.length
+      ? vscode.TreeItemCollapsibleState.None
+      : this.config.expanded
+      ? vscode.TreeItemCollapsibleState.Expanded
+      : vscode.TreeItemCollapsibleState.Collapsed;
+
     return {
       label: entry.label,
-      description: entry.target?.uri?.toString(true).split("/").pop(),
-      tooltip: "This is the tooltip",
-      // iconPath: "assets/icon.png",
-      collapsibleState: entry.children.length
-        ? vscode.TreeItemCollapsibleState.Collapsed
-        : vscode.TreeItemCollapsibleState.None,
+      description,
+      collapsibleState,
       command: entry.target && {
         command: "vscode.open",
         arguments: [
@@ -113,7 +128,7 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
     }
 
     // Map entries into a more natural tree shape, with sorted values.
-    return mapDirectoryTreeToEntries(tree);
+    return mapDirectoryTreeToEntries(tree, this.config.sort);
   }
 
   private refresh(): void {
@@ -125,20 +140,29 @@ export class TreeProvider implements vscode.TreeDataProvider<Entry> {
  * Map intermediate data structure optimized for building up tree
  * structure into a simpler format, with sorted values.
  */
-function mapDirectoryTreeToEntries(tree: DirectoryTree): Entry[] {
+function mapDirectoryTreeToEntries(
+  tree: DirectoryTree,
+  sort: boolean
+): Entry[] {
   const children = Object.entries(tree.directories).map(
     ([label, directory]) => {
       return {
         label,
-        children: mapDirectoryTreeToEntries(directory),
+        children: mapDirectoryTreeToEntries(directory, sort),
       };
     }
   );
-  const sortedDirectories = sortBy(children, ({ label }) => label);
-  const sortedItems = sortBy(tree.items, ({ label }) => label);
+
+  let directories = children;
+  let items = tree.items;
+
+  if (sort) {
+    directories = sortBy(directories, ({ label }) => label);
+    items = sortBy(tree.items, ({ label }) => label);
+  }
 
   return [
-    ...sortedDirectories,
-    ...sortedItems.map((entry) => ({ children: [], ...entry })),
+    ...directories,
+    ...items.map((entry) => ({ children: [], ...entry })),
   ];
 }

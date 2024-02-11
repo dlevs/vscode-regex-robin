@@ -127,3 +127,5 @@ The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
 ## Contributing
 
 Read the [contributing doc](CONTRIBUTING.md) for direction around setting up the extension for development and debugging.
+
+If you're extending the extension's configuration options, look into the `build:config` script - it generates the JSON schema for the TypeScript definitions to avoid duplicate work.

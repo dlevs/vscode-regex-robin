@@ -1777,6 +1777,28 @@
             "markdownDescription": "A reusable regex pattern."
           },
           "markdownDescription": "A map of reusable regex patterns."
+        },
+        "regexrobin.tree": {
+          "markdownDescription": "Settings for tree views.",
+          "type": "object",
+          "properties": {
+            "expanded": {
+              "type": "boolean",
+              "markdownDescription": "Control whether the tree view is initially expanded.",
+              "default": false
+            },
+            "sort": {
+              "type": "boolean",
+              "markdownDescription": "Control whether the tree view is sorted alphabetically.",
+              "default": true
+            },
+            "includeFilenames": {
+              "type": "boolean",
+              "markdownDescription": "Control whether the filename will be printed at the end of the respective items.",
+              "default": false
+            }
+          },
+          "additionalProperties": false
         }
       }
     },

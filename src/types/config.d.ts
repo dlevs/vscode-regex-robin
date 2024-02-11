@@ -21,6 +21,7 @@ export type VSCodeConfigForSchemaGeneration = {
 export interface Config {
   rules: Rule[];
   ruleDecorations: vscode.TextEditorDecorationType[];
+  tree: Required<TreeSharedSettingsInput>;
   dispose: () => void;
 }
 
@@ -85,6 +86,10 @@ export interface ConfigInput {
    * A map of reusable regex patterns.
    */
   templates?: Record<string, RegexTemplate>;
+  /**
+   * Settings for tree views.
+   */
+  tree?: TreeSharedSettingsInput;
 }
 
 /**
@@ -230,6 +235,27 @@ export interface RegexFlagsInput {
    * @default false
    */
   unicode?: boolean;
+}
+
+interface TreeSharedSettingsInput {
+  /**
+   * Control whether the tree view is initially expanded.
+   *
+   * @default false
+   */
+  expanded?: boolean;
+  /**
+   * Control whether the tree view is sorted alphabetically.
+   *
+   * @default true
+   */
+  sort?: boolean;
+  /**
+   * Control whether the filename will be printed at the end of the respective items.
+   *
+   * @default false
+   */
+  includeFilenames?: boolean;
 }
 
 export interface TreeParamsInput {
