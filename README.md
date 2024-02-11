@@ -109,6 +109,17 @@ This error has been observed when another installed extension polyfills the `Str
 
 The solution is to disable the extension that is causing the issue. VSCode's ["Extension Bisect" feature](https://code.visualstudio.com/blogs/2021/02/16/extension-bisect) can help you find the offending extension.
 
+### Absolute filepaths on Windows
+
+Absolute filepaths need to be prepended with `file://`:
+
+```diff
+- "link": "${workspaceFolder}/path/to/my/file.md"
++ "link": "file:///${workspaceFolder}/path/to/my/file.md"
+```
+
+See [this issue](https://github.com/dlevs/vscode-regex-robin/issues/5#issuecomment-1880413812).
+
 ## The logo
 
 The logo was generated using [DALL·E 2](https://openai.com/dall-e-2/).
